@@ -86,39 +86,19 @@ body {
     color: #333;
 }
 
-/* 토글 버튼 (Login / Register) */
-.toggle-container {
-    background-color: #A5C7EB; 
-    border-radius: 50px;
-    padding: 5px;
-    display: flex;
-    width: 280px; /* 고정 너비 */
-    margin: 0 auto 2rem auto; /* 상하 여백 + 좌우 자동(중앙정렬) */
-}
-
-.toggle-btn {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 10px 0;
-    border-radius: 50px;
-    cursor: pointer;
-    justify-content: center;
-    font-weight: 500;
-    color: #fff;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.toggle-btn.active {
-    background-color: #578FCA;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.hello {
+    text-align: center;  /* 텍스트 가운데 정렬 */
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem; /* 토글 버튼과의 간격 */
+    color: #333;
 }
 
 .description {
     color: #666;
     font-size: 0.95rem;
     margin-bottom: 2.5rem;
+    text-align: center;
     line-height: 1.6;
 }
 
