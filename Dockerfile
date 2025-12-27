@@ -15,6 +15,7 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install cloud-sql-python-connector[pymysql] sqlalchemy pymysql flask flask-cors pandas
 
 # Copy entire project
 COPY . .
@@ -24,3 +25,5 @@ ENV PORT=8080
 
 # Start server using Gunicorn
 CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
+
+
