@@ -1,5 +1,0 @@
-flask
-gunicorn
-google-cloud-sql-connector[pymysql]
-sqlalchemy
-pymysql
