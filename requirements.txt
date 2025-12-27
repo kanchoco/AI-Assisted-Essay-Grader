@@ -1,0 +1,8 @@
+flask
+flask-cors
+cloud-sql-python-connector[pymysql]
+sqlalchemy
+pymysql
+gunicorn
+pandas
+openpyxl
