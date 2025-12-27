@@ -3,6 +3,9 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from google.cloud.sql.connector import Connector
 import sqlalchemy
+import pandas as pd
+from werkzeug.utils import secure_filename
+import uuid
 
 # Flask app
 app = Flask(__name__)
@@ -40,6 +43,49 @@ def get_engine():
 def index():
     return {"message": "Cloud Run API OK"}
 
+@app.post("/upload_excel")
+def upload_excel():
+    if "file" not in request.files:
+        return {"status": "error", "message": "No file uploaded"}, 400
+
+    file = request.files["file"]
+
+    try:
+        df = pd.read_excel(file)
+
+        required_cols = ["이름", "text"]
+        for col in required_cols:
+            if col not in df.columns:
+                return {
+                    "status": "error",
+                    "message": f"엑셀에 필요한 컬럼이 없습니다: {col}"
+                }, 400
+
+        engine = get_engine()
+        with engine.connect() as conn:
+            inserted = 0
+
+            for _, row in df.iterrows():
+                student_uid = str(uuid.uuid4())  # UID 자동 생성
+                student_id = str(row["이름"]).strip()
+                student_answer = str(row["text"]).strip()
+
+                conn.execute(sqlalchemy.text("""
+                    INSERT INTO studentDB (student_uid, student_id, student_answer)
+                    VALUES (:uid, :sid, :answer)
+                """), {
+                    "uid": student_uid,
+                    "sid": student_id,
+                    "answer": student_answer
+                })
+                inserted += 1
+
+            conn.commit()
+
+        return {"status": "success", "message": f"{inserted} students added"}
+
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 # 학생 검색
 @app.get("/student/<student_uid>")
@@ -114,17 +160,52 @@ def login():
     rater_id = data.get("rater_id")
     password = data.get("password")
 
+    # 공용 비밀번호
+    COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
+
+    # 비밀번호 틀림 → 에러코드 없이 success=False만 반환
+    if password != COMMON_PASSWORD:
+        return {"success": False, "message": "wrong password"}
+
     engine = get_engine()
     with engine.connect() as conn:
-        row = conn.execute(sqlalchemy.text("""
-            SELECT * FROM raterDB
-            WHERE rater_id = :id AND rater_pwd = :pwd
-        """), {"id": rater_id, "pwd": password}).fetchone()
 
+        # 1) 이미 존재하는 rater인지 확인
+        row = conn.execute(sqlalchemy.text("""
+            SELECT rater_uid, rater_id
+            FROM raterDB
+            WHERE rater_id = :rid
+        """), {"rid": rater_id}).fetchone()
+
+        # 2) 존재하면 로그인 성공
         if row:
-            return {"success": True}
-        else:
-            return {"success": False}, 401
+            return {
+                "success": True,
+                "rater_uid": row["rater_uid"],
+                "rater_id": row["rater_id"],
+                "message": "login success"
+            }
+
+        # 3) 존재하지 않으면 새로운 rater 자동 생성
+        new_uid_row = conn.execute(sqlalchemy.text("SELECT UUID() AS uid")).fetchone()
+        new_uid = new_uid_row["uid"]
+
+        conn.execute(sqlalchemy.text("""
+            INSERT INTO raterDB (rater_uid, rater_id)
+            VALUES (:uid, :rid)
+        """), {"uid": new_uid, "rid": rater_id})
+
+        conn.commit()
+
+        # 4) 생성 후 로그인 성공 응답
+        return {
+            "success": True,
+            "rater_uid": new_uid,
+            "rater_id": rater_id,
+            "message": "created and logged in"
+        }
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

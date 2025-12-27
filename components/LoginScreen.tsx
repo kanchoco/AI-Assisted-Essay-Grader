@@ -3,7 +3,7 @@ import './Login.css';
 
 interface LoginProps {
   apiUrl: string;
-  onLoginSuccess: (raterId: string) => void;
+  onLoginSuccess: (raterUid: string, raterId: string) => void;
 }
 
 const LoginScreen: React.FC<LoginProps> = ({ apiUrl, onLoginSuccess }) => {
@@ -12,24 +12,19 @@ const LoginScreen: React.FC<LoginProps> = ({ apiUrl, onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 실제 Cloud Run 로그인 API 호출
+  // Cloud Run 로그인 API 호출
   const loginAPI = async (id: string, pw: string) => {
-    try {
-      const response = await fetch(`${apiUrl}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rater_id: id,
-          password: pw
-        })
-      });
+    const response = await fetch(`${apiUrl}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rater_id: id,
+        password: pw
+      })
+    });
 
-      const data = await response.json();
-      return data;
-
-    } catch (error) {
-      return { success: false, message: "서버 연결 오류" };
-    }
+    const data = await response.json();
+    return data;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,10 +34,9 @@ const LoginScreen: React.FC<LoginProps> = ({ apiUrl, onLoginSuccess }) => {
     const result = await loginAPI(username, password);
 
     if (result.success) {
-      // 부모(App)로 로그인 성공 + raterId 전달
-      onLoginSuccess(username);
+      onLoginSuccess(result.rater_uid, result.rater_id);
     } else {
-      alert(result.message ?? "로그인 실패");
+      alert(result.message ?? "중복된 아이디입니다.");
     }
 
     setIsLoading(false);
@@ -99,6 +93,7 @@ const LoginScreen: React.FC<LoginProps> = ({ apiUrl, onLoginSuccess }) => {
               {isLoading ? "Processing..." : "Login"}
             </button>
           </form>
+
         </div>
       </div>
     </div>
