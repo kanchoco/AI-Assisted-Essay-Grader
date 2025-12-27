@@ -4,210 +4,217 @@ import './Grading.css';
 interface GradingProps {
   apiUrl: string;
   raterId: string;
+  raterUid: string;
 }
 
-const GradingScreen: React.FC<GradingProps> = ({ apiUrl, raterId }) => {
-
+const GradingScreen: React.FC<GradingProps> = ({
+  apiUrl,
+  raterId,
+  raterUid,
+}) => {
   const [searchText, setSearchText] = useState('');
   const [isGradingStarted, setIsGradingStarted] = useState(false);
 
-  const [studentAnswer, setStudentAnswer] = useState('');
+  // 학생
   const [studentUid, setStudentUid] = useState('');
+  const [studentAnswer, setStudentAnswer] = useState('');
 
-  const [expertScore, setExpertScore] = useState({ critical: '', math: '' });
-  const [isExpertSaved, setIsExpertSaved] = useState(false);
+  // 전문가 점수
+  const [expertScore, setExpertScore] = useState({
+    critical: '',
+    math: '',
+  });
 
+  // AI 결과
   const [aiResult, setAiResult] = useState<any>(null);
   const [showAiResult, setShowAiResult] = useState(false);
 
-  // 학생 답안 조회 API
-  const fetchStudentAnswer = async () => {
-    try {
-      const res = await fetch(`${apiUrl}/student/${searchText}`);
-      const data = await res.json();
+  // 상태 플래그
+  const [aiDone, setAiDone] = useState(false);
+  const [finalSaved, setFinalSaved] = useState(false);
 
-      if (data.success) {
-        setStudentAnswer(data.student_answer);
-        setStudentUid(data.student_uid);
-        setIsGradingStarted(true);
-      } else {
-        alert(data.message || "학생을 찾을 수 없습니다.");
-      }
-    } catch {
-      alert("서버 연결 오류");
-    }
-  };
-
-  // 전문가 점수 저장 API
-  const saveExpertScore = async () => {
-    if (!expertScore.critical || !expertScore.math) {
-      alert("모든 점수를 입력해주세요.");
+    //  학생 조회
+  const handleSearch = async () => {
+    if (!searchText.trim()) {
+      alert('학생 번호를 입력해주세요');
       return;
     }
 
     try {
-      const res = await fetch(`${apiUrl}/rater/score`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          student_uid: studentUid,
-          rater_id: raterId,
-          knw_score: Number(expertScore.math),
-          crt_score: Number(expertScore.critical)
-        })
-      });
-
+      const res = await fetch(`${apiUrl}/student/${searchText}`);
       const data = await res.json();
-      if (data.success) {
-        setIsExpertSaved(true);
-        alert("점수 저장 완료!");
-      } else {
-        alert(data.message);
+
+      if (!res.ok) {
+        alert('학생을 찾을 수 없습니다');
+        return;
       }
+
+      setStudentUid(data.student_uid);
+      setStudentAnswer(data.student_answer);
+      setIsGradingStarted(true);
     } catch {
-      alert("서버 오류");
+      alert('서버 오류');
     }
   };
 
-  // 3) AI 채점 결과 조회 API
-  const fetchAiScore = async () => {
+    //  AI 채점 (전문가 점수 + AI 점수)
+  const handleAiGrade = async () => {
+    if (!expertScore.critical || !expertScore.math) {
+      alert('전문가 점수를 입력하세요');
+      return;
+    }
+
     try {
-      const res = await fetch(`${apiUrl}/ai/score/${studentUid}`);
+      const res = await fetch(`${apiUrl}/ai_grade`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_uid: studentUid,
+          rater_uid: raterUid,          // 🔥 핵심
+          expert_crt_score: Number(expertScore.critical),
+          expert_knw_score: Number(expertScore.math),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        alert('AI 채점 실패');
+        return;
+      }
+
+      setAiResult(data);
+      setShowAiResult(true);
+      setAiDone(true);
+    } catch {
+      alert('AI 서버 오류');
+    }
+  };
+
+    //  점수 최종 확정
+  const handleFinalSave = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/add_final_score`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_uid: studentUid,
+          rater_uid: raterUid,         
+        }),
+      });
+
       const data = await res.json();
 
       if (data.success) {
-        setAiResult(data);
-        setShowAiResult(true);
+        setFinalSaved(true);
+        alert('점수가 최종 확정되었습니다');
       } else {
-        alert(data.message);
+        alert('저장 실패');
       }
     } catch {
-      alert("AI 서버 오류");
+      alert('서버 오류');
     }
   };
 
   return (
     <div className="grading-container">
-      
-      {/* 상단 헤더 */}
       <header className="top-header">
         <div className="logo">Logo</div>
-        <button className="logout-btn" onClick={() => window.location.reload()}>
+        <div className="rater-info">
+          {raterId}
+        </div>
+        <button
+          className="logout-btn"
+          onClick={() => window.location.reload()}
+        >
           Logout
         </button>
       </header>
 
-      {/* 메인 */}
       <main className="main-content">
-
-        {/* 검색창 */}
+        {/* 검색 */}
         <div className="search-section">
           <div className="search-bar-wrapper">
-            <i className="fa-solid fa-magnifying-glass search-icon"></i>
             <input
               type="text"
               placeholder="학생 ID 입력"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && fetchStudentAnswer()}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
-            <button className="search-btn" onClick={fetchStudentAnswer}>
-              Search
-            </button>
+            <button onClick={handleSearch}>Search</button>
           </div>
         </div>
 
-        {/* 검색 전 */}
         {!isGradingStarted ? (
           <div className="empty-state-container">
-            <p className="empty-text">검색하면 여기에 학생 답안과 채점 화면이 나타납니다.</p>
+            <p>학생을 검색하세요</p>
           </div>
         ) : (
-          <div className="workspace fade-in">
-
-            {/* 학생 답안 패널 */}
+          <div className="workspace">
+            {/* 왼쪽 */}
             <div className="left-panel">
-              <h3 className="panel-title">Student #{searchText}</h3>
-              <div className="student-card active">
-                <div className="card-body">
-                  <p>{studentAnswer}</p>
-                </div>
-              </div>
+              <h3>Student #{searchText}</h3>
+              <p>{studentAnswer}</p>
             </div>
 
-            {/* 전문가 채점 패널 */}
+            {/* 오른쪽 */}
             <div className="right-panel">
-              <div className="grading-form-container">
-                <div className="form-header">
-                  <h3>전문가 채점</h3>
-                  <span className={`status-badge ${isExpertSaved ? 'completed' : 'pending'}`}>
-                    {isExpertSaved ? '저장 완료' : '채점 중'}
-                  </span>
-                </div>
+              <h3>전문가 점수</h3>
 
-                <div className="grading-criteria">
-                  <div className="criteria-item">
-                    <label>비판적 사고 (10점)</label>
-                    <input
-                      type="number"
-                      value={expertScore.critical}
-                      onChange={(e) =>
-                        setExpertScore({ ...expertScore, critical: e.target.value })
-                      }
-                      disabled={isExpertSaved}
-                    />
-                  </div>
+              <input
+                type="number"
+                placeholder="비판적 사고"
+                value={expertScore.critical}
+                onChange={(e) =>
+                  setExpertScore({
+                    ...expertScore,
+                    critical: e.target.value,
+                  })
+                }
+                disabled={aiDone}
+              />
 
-                  <div className="criteria-item">
-                    <label>수과학적 지식 (10점)</label>
-                    <input
-                      type="number"
-                      value={expertScore.math}
-                      onChange={(e) =>
-                        setExpertScore({ ...expertScore, math: e.target.value })
-                      }
-                      disabled={isExpertSaved}
-                    />
-                  </div>
-                </div>
+              <input
+                type="number"
+                placeholder="수과학적 지식"
+                value={expertScore.math}
+                onChange={(e) =>
+                  setExpertScore({
+                    ...expertScore,
+                    math: e.target.value,
+                  })
+                }
+                disabled={aiDone}
+              />
 
-                <div className="action-buttons">
+              <button onClick={handleAiGrade} disabled={aiDone}>
+                AI 채점
+              </button>
+
+              {showAiResult && aiResult && (
+                <div className="ai-result-section">
+                  <h3>🤖 AI 채점 결과</h3>
+
+                  <p>비판적 사고: {aiResult.scores.critical}</p>
+                  <p>수과학적 지식: {aiResult.scores.scientific}</p>
+
+                  <h4>채점 근거</h4>
+                  <ul>
+                    {aiResult.rationales.map((r: string, i: number) => (
+                      <li key={i}>{r}</li>
+                    ))}
+                  </ul>
+
                   <button
-                    className={`btn-save ${isExpertSaved ? 'disabled' : ''}`}
-                    onClick={saveExpertScore}
-                    disabled={isExpertSaved}
+                    onClick={handleFinalSave}
+                    disabled={finalSaved}
                   >
-                    {isExpertSaved ? "저장됨" : "점수 저장"}
-                  </button>
-
-                  <button
-                    className={`btn-ai ${!isExpertSaved ? 'disabled' : ''}`}
-                    onClick={fetchAiScore}
-                    disabled={!isExpertSaved}
-                  >
-                    AI 채점 결과 확인
+                    {finalSaved ? '확정 완료' : '점수 확정'}
                   </button>
                 </div>
-
-                {showAiResult && aiResult && (
-                  <div className="ai-result-section fade-in">
-                    <hr className="divider" />
-                    <div className="ai-header">
-                      <h3>🤖 AI 분석 결과</h3>
-                      <span className="ai-score">
-                        Total: {aiResult.total_score}
-                      </span>
-                    </div>
-                    <div className="ai-feedback-box">
-                      <h4>AI 피드백</h4>
-                      <p>{aiResult.feedback}</p>
-                    </div>
-                  </div>
-                )}
-
-              </div>
+              )}
             </div>
-
           </div>
         )}
       </main>

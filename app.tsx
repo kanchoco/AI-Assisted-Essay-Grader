@@ -44,7 +44,7 @@ function App() {
       {/* 화면 컨텐츠 */}
       <main style={contentStyle}>
         {currentScreen === "grading" ? (
-          <GradingScreen apiUrl={API_BASE_URL} raterId={raterId} />
+          <GradingScreen apiUrl={API_BASE_URL} raterId={raterId} raterUid={raterUid} />
         ) : (
           <UploadStudentPage apiUrl={API_BASE_URL} />
         )}
