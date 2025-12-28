@@ -151,8 +151,8 @@ def login():
         if row:
             return {
                 "success": True,
-                "rater_uid": row["rater_uid"],
-                "rater_id": row["rater_id"]
+                "rater_uid": row[0],  
+                "rater_id": row[1]
             }
 
         new_uid = conn.execute(
@@ -173,6 +173,7 @@ def login():
             "rater_uid": new_uid,
             "rater_id": rater_id
         }
+
 
 @app.post("/ai_grade")
 def ai_grade():
