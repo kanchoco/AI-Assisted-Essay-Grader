@@ -42,9 +42,19 @@ function App() {
       </header>
 
       {/* 화면 컨텐츠 */}
-      <main style={contentStyle}>
+      <main
+        style={{
+          flex: 1,
+          width: "100%",
+          padding: "24px",
+        }}
+      >
         {currentScreen === "grading" ? (
-          <GradingScreen apiUrl={API_BASE_URL} raterId={raterId} raterUid={raterUid} />
+          <GradingScreen
+            apiUrl={API_BASE_URL}
+            raterId={raterId}
+            raterUid={raterUid}
+          />
         ) : (
           <UploadStudentPage apiUrl={API_BASE_URL} />
         )}
@@ -56,12 +66,12 @@ function App() {
 export default App;
 
 // ---------------------- 스타일 ----------------------
-const containerStyle: React.CSSProperties = {
-  minHeight: "100vh",
-  width: "100%",
-  display: "flex",
-  flexDirection: "column",
-};
+// const containerStyle: React.CSSProperties = {
+//   minHeight: "100vh",
+//   width: "100%",
+//   display: "flex",
+//   flexDirection: "column",
+// };
 
 const headerStyle: React.CSSProperties = {
   width: "100%",
