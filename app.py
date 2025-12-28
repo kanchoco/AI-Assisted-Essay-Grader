@@ -135,7 +135,7 @@ def login():
     COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
 
     if password != COMMON_PASSWORD:
-        return {"success": False}
+        return {"success": False, "message": "비밀번호 오류"}
 
     engine = get_engine()
     with engine.connect() as conn:
@@ -148,16 +148,16 @@ def login():
             {"rid": rater_id}
         ).mappings().fetchone()
 
-        if row:
+        if row is not None:
             return {
                 "success": True,
-                "rater_uid": row[0],  
-                "rater_id": row[1]
+                "rater_uid": row["rater_uid"],
+                "rater_id": row["rater_id"]
             }
 
         new_uid = conn.execute(
-            sqlalchemy.text("SELECT UUID()")
-        ).mappings().fetchone()[0]
+            sqlalchemy.text("SELECT UUID() AS uid")
+        ).mappings().fetchone()["uid"]
 
         conn.execute(
             sqlalchemy.text("""
