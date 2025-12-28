@@ -146,7 +146,7 @@ def login():
                 WHERE rater_id = :rid
             """),
             {"rid": rater_id}
-        ).fetchone()
+        ).mappings().fetchone()
 
         if row:
             return {
@@ -157,7 +157,7 @@ def login():
 
         new_uid = conn.execute(
             sqlalchemy.text("SELECT UUID()")
-        ).fetchone()[0]
+        ).mappings().fetchone()[0]
 
         conn.execute(
             sqlalchemy.text("""
