@@ -30,7 +30,7 @@ const UploadStudentPage: React.FC<UploadProps> = ({ apiUrl }) => {
     try {
       const res = await fetch(`${apiUrl}/upload_excel`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       const data = await res.json();
@@ -40,7 +40,7 @@ const UploadStudentPage: React.FC<UploadProps> = ({ apiUrl }) => {
       } else {
         setMessage(`오류 발생: ${data.message}`);
       }
-    } catch (err) {
+    } catch {
       setMessage("서버 요청 중 오류가 발생했습니다.");
     } finally {
       setUploading(false);
@@ -48,40 +48,40 @@ const UploadStudentPage: React.FC<UploadProps> = ({ apiUrl }) => {
   };
 
   return (
-    <div className="grading-container">
-      <h2 style={{ marginBottom: "16px" }}>학생 데이터 업로드</h2>
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "600px",
+        margin: "0 auto",
+        paddingTop: "40px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
+      }}
+    >
+      <h2>학생 데이터 업로드</h2>
 
       <input type="file" accept=".xlsx,.xls" onChange={handleFileSelect} />
 
       <button
         onClick={handleUpload}
         disabled={uploading}
-        style={buttonStyle(uploading)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: uploading ? "#ccc" : "#4A90E2",
+          border: "none",
+          color: "white",
+          cursor: uploading ? "not-allowed" : "pointer",
+          borderRadius: "6px",
+          fontSize: "14px",
+        }}
       >
         {uploading ? "업로드 중..." : "엑셀 업로드"}
       </button>
 
-      {message && <p style={{ marginTop: "20px" }}>{message}</p>}
+      {message && <p>{message}</p>}
     </div>
   );
 };
 
 export default UploadStudentPage;
-
-const pageStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  marginTop: "40px"
-};
-
-const buttonStyle = (disabled: boolean): React.CSSProperties => ({
-  marginTop: "16px",
-  padding: "10px 20px",
-  backgroundColor: disabled ? "#ccc" : "#4A90E2",
-  border: "none",
-  color: "white",
-  cursor: disabled ? "not-allowed" : "pointer",
-  borderRadius: "6px",
-  fontSize: "14px"
-});
