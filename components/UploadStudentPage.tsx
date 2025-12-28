@@ -48,7 +48,7 @@ const UploadStudentPage: React.FC<UploadProps> = ({ apiUrl }) => {
   };
 
   return (
-    <div style={pageStyle}>
+    <div className="grading-container">
       <h2 style={{ marginBottom: "16px" }}>학생 데이터 업로드</h2>
 
       <input type="file" accept=".xlsx,.xls" onChange={handleFileSelect} />
