@@ -1,29 +1,33 @@
-# Python base image
-FROM python:3.10-slim
+FROM node:18 AS frontend
 
-# Install system packages
-RUN apt-get update && apt-get install -y \
-    gcc \
-    default-mysql-client \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /frontend
 
-# Set working directory
-WORKDIR /app
+# 패키지 설치
+COPY package.json package-lock.json ./
+RUN npm install
 
-# Copy requirement first (better cache)
-COPY requirements.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install cloud-sql-python-connector[pymysql] sqlalchemy pymysql flask flask-cors pandas
-
-# Copy entire project
+# 프런트엔드 소스 복사
 COPY . .
 
-# Expose Cloud Run port
+# React build (dist 생성)
+RUN npm run build
+
+
+FROM python:3.10
+
+WORKDIR /app
+
+# Python 패키지 설치
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Flask / AI 코드 복사
+COPY app.py ai_grader.py ./
+
+# React build 결과 복사 (중요)
+COPY --from=frontend /frontend/dist ./dist
+
+# Cloud Run 포트
 ENV PORT=8080
 
-# Start server using Gunicorn
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
-
-
+CMD ["gunicorn", "-b", ":8080", "app:app"]
