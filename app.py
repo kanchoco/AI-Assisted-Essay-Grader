@@ -16,7 +16,6 @@ FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "frontend", "dist")
 app = Flask(
     __name__,
     static_folder=FRONTEND_BUILD_PATH,
-    static_url_path=""
 )
 
 CORS(app)
@@ -177,6 +176,7 @@ def login():
 @app.post("/ai_grade")
 def ai_grade():
     data = request.json
+
     student_uid = data["student_uid"]
     rater_uid = data["rater_uid"]
     expert_knw = data["expert_knw_score"]
@@ -185,9 +185,10 @@ def ai_grade():
     engine = get_engine()
 
     with engine.connect() as conn:
+        # 학생 답안 조회
         student = conn.execute(
             sqlalchemy.text(
-                "SELECT student_answer FROM studentDB WHERE student_uid=:uid"
+                "SELECT student_answer FROM studentDB WHERE student_uid = :uid"
             ),
             {"uid": student_uid}
         ).fetchone()
@@ -198,28 +199,29 @@ def ai_grade():
         essay = student["student_answer"]
 
         # AI 채점 실행
-        ai_ui_result = run_ai_grading(essay)
-
+        ai_result = run_ai_grading(essay)
         score_uid = str(uuid.uuid4())
 
-        # AI 점수 저장
+        # AI 점수 저장 (과학 / 비판 분리)
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO ai_scoreDB
                 (score_uid, student_uid, rater_uid,
-                 knw_score, crt_score, knw_text, crt_text)
+                 knw_score, crt_score,
+                 knw_text, crt_text)
                 VALUES
                 (:uid, :student_uid, :rater_uid,
-                 :knw, :crt, :knw_text, :crt_text)
+                 :knw, :crt,
+                 :knw_text, :crt_text)
             """),
             {
                 "uid": score_uid,
                 "student_uid": student_uid,
                 "rater_uid": rater_uid,
-                "knw": ai_ui_result["scores"]["scientific"],
-                "crt": ai_ui_result["scores"]["critical"],
-                "knw_text": "\n".join(ai_ui_result["rationales"]),
-                "crt_text": "\n".join(ai_ui_result["rationales"]),
+                "knw": ai_result["scores"]["scientific"],
+                "crt": ai_result["scores"]["critical"],
+                "knw_text": "\n".join(ai_result["rationales"]["scientific"]),
+                "crt_text": "\n".join(ai_result["rationales"]["critical"]),
             }
         )
 
@@ -244,7 +246,13 @@ def ai_grade():
 
         conn.commit()
 
-    return ai_ui_result
+    # 프런트에 AI 결과 그대로 반환
+    return {
+        "success": True,
+        "score_uid": score_uid,
+        "ai_result": ai_result
+    }
+
 
 # 프런트엔드 서빙
 @app.route("/", defaults={"path": ""})
