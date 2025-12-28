@@ -259,9 +259,7 @@ def ai_grade():
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):
-    """
-    React 정적 파일 or index.html 반환
-    """
-    if path != "" and os.path.exists(os.path.join(FRONTEND_BUILD_PATH, path)):
+    file_path = os.path.join(FRONTEND_BUILD_PATH, path)
+    if path != "" and os.path.exists(file_path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
     return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
