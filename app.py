@@ -156,8 +156,8 @@ def login():
             }
 
         new_uid = conn.execute(
-            sqlalchemy.text("SELECT UUID() AS uid")
-        ).fetchone()["uid"]
+            sqlalchemy.text("SELECT UUID()")
+        ).fetchone()[0]
 
         conn.execute(
             sqlalchemy.text("""
