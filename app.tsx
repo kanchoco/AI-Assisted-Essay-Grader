@@ -93,7 +93,6 @@ const logoutStyle: React.CSSProperties = {
 
 const contentStyle: React.CSSProperties = {
   flex: 1,
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
+  width: "100%",
 };
+
