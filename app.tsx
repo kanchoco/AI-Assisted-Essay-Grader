@@ -54,13 +54,6 @@ function App() {
           채점하기
         </button>
 
-        <button
-          style={menuButtonStyle}
-          onClick={() => setCurrentScreen("upload")}
-        >
-          학생 업로드
-        </button>
-
         <div style={{ marginLeft: "auto", marginRight: "12px" }}>
           {raterId}
         </div>

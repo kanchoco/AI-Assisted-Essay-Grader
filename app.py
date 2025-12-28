@@ -97,7 +97,7 @@ def get_student(student_id):
         row = conn.execute(
             sqlalchemy.text("SELECT * FROM studentDB WHERE student_id = :id"),
             {"id": student_id}
-        ).fetchone()
+        ).mappings().fetchone()
 
         if not row:
             return {"error": "student not found"}, 404
