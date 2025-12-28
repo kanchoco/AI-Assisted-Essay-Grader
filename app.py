@@ -16,7 +16,7 @@ FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "frontend", "dist")
 app = Flask(
     __name__,
     static_folder=FRONTEND_BUILD_PATH,
-    static_url_path="https://ai-assist-grading-1015930710584.us-central1.run.app"
+    static_url_path="/"
 )
 
 CORS(app)
