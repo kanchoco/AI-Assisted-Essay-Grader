@@ -104,77 +104,6 @@ def get_student(student_id):
 
         return jsonify(dict(row))
 
-
-@app.post("/add_final_score")
-def add_final_score():
-    data = request.json
-    engine = get_engine()
-
-    with engine.connect() as conn:
-        conn.execute(
-            sqlalchemy.text("""
-                INSERT INTO final_scoreDB
-                (score_uid, student_uid, rater_uid,
-                 knw_score, crt_score)
-                VALUES
-                (:score_uid, :student_uid, :rater_uid,
-                 :knw_score, :crt_score)
-            """),
-            data
-        )
-        conn.commit()
-
-    return {"status": "ok"}
-
-@app.post("/login")
-def login():
-    data = request.json
-    rater_id = data.get("rater_id")
-    password = data.get("password")
-
-    COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
-
-    if password != COMMON_PASSWORD:
-        return {"success": False, "message": "비밀번호 오류"}
-
-    engine = get_engine()
-    with engine.connect() as conn:
-        row = conn.execute(
-            sqlalchemy.text("""
-                SELECT rater_uid, rater_id
-                FROM raterDB
-                WHERE rater_id = :rid
-            """),
-            {"rid": rater_id}
-        ).mappings().fetchone()
-
-        if row is not None:
-            return {
-                "success": True,
-                "rater_uid": row["rater_uid"],
-                "rater_id": row["rater_id"]
-            }
-
-        new_uid = conn.execute(
-            sqlalchemy.text("SELECT UUID() AS uid")
-        ).mappings().fetchone()["uid"]
-
-        conn.execute(
-            sqlalchemy.text("""
-                INSERT INTO raterDB (rater_uid, rater_id)
-                VALUES (:uid, :rid)
-            """),
-            {"uid": new_uid, "rid": rater_id}
-        )
-        conn.commit()
-
-        return {
-            "success": True,
-            "rater_uid": new_uid,
-            "rater_id": rater_id
-        }
-
-
 @app.post("/ai_grade")
 def ai_grade():
     data = request.json
@@ -255,6 +184,75 @@ def ai_grade():
         "ai_result": ai_result
     }
 
+
+@app.post("/add_final_score")
+def add_final_score():
+    data = request.json
+    engine = get_engine()
+
+    with engine.connect() as conn:
+        conn.execute(
+            sqlalchemy.text("""
+                INSERT INTO final_scoreDB
+                (score_uid, student_uid, rater_uid,
+                 knw_score, crt_score)
+                VALUES
+                (:score_uid, :student_uid, :rater_uid,
+                 :knw_score, :crt_score)
+            """),
+            data
+        )
+        conn.commit()
+
+    return {"status": "ok"}
+
+@app.post("/login")
+def login():
+    data = request.json
+    rater_id = data.get("rater_id")
+    password = data.get("password")
+
+    COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
+
+    if password != COMMON_PASSWORD:
+        return {"success": False, "message": "비밀번호 오류"}
+
+    engine = get_engine()
+    with engine.connect() as conn:
+        row = conn.execute(
+            sqlalchemy.text("""
+                SELECT rater_uid, rater_id
+                FROM raterDB
+                WHERE rater_id = :rid
+            """),
+            {"rid": rater_id}
+        ).mappings().fetchone()
+
+        if row is not None:
+            return {
+                "success": True,
+                "rater_uid": row["rater_uid"],
+                "rater_id": row["rater_id"]
+            }
+
+        new_uid = conn.execute(
+            sqlalchemy.text("SELECT UUID() AS uid")
+        ).mappings().fetchone()["uid"]
+
+        conn.execute(
+            sqlalchemy.text("""
+                INSERT INTO raterDB (rater_uid, rater_id)
+                VALUES (:uid, :rid)
+            """),
+            {"uid": new_uid, "rid": rater_id}
+        )
+        conn.commit()
+
+        return {
+            "success": True,
+            "rater_uid": new_uid,
+            "rater_id": rater_id
+        }
 
 # 프런트엔드 서빙
 @app.route("/", defaults={"path": ""})
