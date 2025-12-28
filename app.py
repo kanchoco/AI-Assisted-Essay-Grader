@@ -16,7 +16,7 @@ FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "frontend", "dist")
 app = Flask(
     __name__,
     static_folder=FRONTEND_BUILD_PATH,
-    static_url_path="/"
+    static_url_path=""
 )
 
 CORS(app)
@@ -45,17 +45,6 @@ def get_engine():
         creator=getconn,
         pool_pre_ping=True,
     )
-
-# 프런트엔드 서빙
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-def serve_react(path):
-    """
-    React 정적 파일 or index.html 반환
-    """
-    if path != "" and os.path.exists(os.path.join(FRONTEND_BUILD_PATH, path)):
-        return send_from_directory(FRONTEND_BUILD_PATH, path)
-    return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
 
 # API 영역
 
@@ -257,3 +246,13 @@ def ai_grade():
 
     return ai_ui_result
 
+# 프런트엔드 서빙
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_react(path):
+    """
+    React 정적 파일 or index.html 반환
+    """
+    if path != "" and os.path.exists(os.path.join(FRONTEND_BUILD_PATH, path)):
+        return send_from_directory(FRONTEND_BUILD_PATH, path)
+    return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
