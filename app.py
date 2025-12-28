@@ -10,7 +10,7 @@ from ai_grader import run_ai_grading
 
 # React build 경로
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "frontend", "dist")
+FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "dist")
 
 # Flask app
 app = Flask(
