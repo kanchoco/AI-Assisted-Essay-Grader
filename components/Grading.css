@@ -1,366 +1,57 @@
 * {
-    box-sizing: border-box;
-    font-family: 'Pretendard', 'Noto Sans KR', 'Poppins', sans-serif;
+  box-sizing: border-box;
+  font-family: Pretendard, Noto Sans KR, sans-serif;
 }
 
-/* (1) 전체 컨테이너: 화면을 꽉 채우는 역할 */
 .grading-container {
-    width: 100vw; /* 뷰포트 너비 100% 강제 적용 */
-    height: 100vh; /* 뷰포트 높이 100% */
-    background-color: #fff;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;  /* 가로 스크롤 방지 */
-    
-    /* 리액트 기본 스타일(중앙 정렬) 무시를 위한 설정 */
-    position: absolute; 
-    top: 0;
-    left: 0;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-/* (2) 상단 헤더: 양옆으로 쫙 펼쳐짐 */
-.top-header {
-    width: 100%; /* 너비 100% 필수 */
-    height: 80px; /* 헤더 높이 고정 */
-    padding: 40px; /* 좌우 여백 */
-    display: flex;
-    justify-content: space-between; /* 양 끝 정렬 (로고, 버튼) */
-    align-items: center;
-    box-sizing: border-box; /* 패딩 포함 크기 계산 */
-    background-color: #fff; /* 배경색 명시 */
-}
-
-.logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #333;
-}
-
-.logout-btn {
-    padding: 10px 25px;
-    background-color: #578FCA;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: background 0.3s;
-}
-
-.logout-btn:hover {
-    background-color: #4a84e6;
-}
-
-/* (3) 메인 컨텐츠 영역 */
-.main-content {
-    flex: 1; /* 남은 공간 차지 */
-    position: relative;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* 내부 요소(검색창) 중앙 정렬 */
-    padding-top: 50px; /* 위쪽 여백 (검색창 위치 조정) */
-}
-
-/* (4) 검색바 스타일 */
 .search-section {
-    width: 100%;
-    display: flex;
-    justify-content: center; /* 가로 중앙 정렬 */
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
 }
 
 .search-bar-wrapper {
-    display: flex;
-    align-items: center;
-    background: #fff;
-    border: 1px solid #6c9bd2; /* 이미지의 파란색 테두리 */
-    border-radius: 6px;
-    padding: 5px 5px 5px 15px;
-    width: 100%;
-    max-width: 650px; /* 검색창 길이 */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.search-icon {
-    color: #888;
-    margin-right: 10px;
-    font-size: 1.1rem;
+  display: flex;
+  gap: 10px;
+  width: 600px;
 }
 
 #student-search {
-    border: none;
-    outline: none;
-    flex: 1;
-    font-size: 1rem;
-    padding: 10px 0;
-    color: #333;
+  flex: 1;
+  padding: 10px;
+  font-size: 14px;
 }
 
 .search-btn {
-    background-color: #9dc2e5; /* 이미지의 연한 파란색 버튼 */
-    color: #333;
-    border: none;
-    padding: 10px 30px;
-    border-radius: 4px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-left: 10px;
-    white-space: nowrap; /* 글자 줄바꿈 방지 */
+  padding: 10px 20px;
+  background: #5c95f8;
+  border: none;
+  color: #fff;
+  cursor: pointer;
 }
 
-.search-btn:hover {
-    background-color: #8bb3f0;
-}
-
-/* (5) 초기 안내 문구 (Empty State) */
 .empty-state-container {
-    margin-top: 15%; /* 검색창과의 간격 */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.empty-text {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: #000;
+  margin-top: 80px;
+  text-align: center;
 }
 
 .workspace {
-    display: flex; 
-    width: 100%; 
-    height: 100%; 
-    gap: 20px; 
-    padding: 30px;
-    animation: fadeIn 0.5s ease-out;
+  display: flex;
+  gap: 20px;
+  padding: 30px;
+  width: 100%;
 }
 
-.left-panel, .right-panel {
-    flex: 1; 
-    background: #fff; 
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-    padding: 25px;
-    overflow-y: auto; /* 내용 많으면 스크롤 */
-    height: calc(100vh - 160px); /* 헤더와 검색창 제외한 높이 */
-}
-
-/* 왼쪽 패널 (학생 답안) */
-.panel-title { 
-    font-size: 1.2rem; 
-    font-weight: 700; 
-    margin-bottom: 20px; 
-    display: flex; 
-    align-items: center; 
-}
-
-.badge { 
-    background: #eee; 
-    font-size: 0.8rem; 
-    padding: 4px 8px; 
-    border-radius: 12px; 
-    margin-left: 8px; 
-}
-
-.student-card { 
-    border: 1px solid #e0e0e0; 
-    border-radius: 8px; 
-    overflow: hidden; 
-}
-
-.card-header { 
-    background: #f1f3f5; 
-    padding: 10px 15px; 
-    font-weight: 600; 
-    color: #333; 
-    border-bottom: 1px solid #e0e0e0; 
-}
-
-.card-body { 
-    padding: 20px; 
-}
-
-.question-title { 
-    color: #5C95F8; 
-    font-weight: 600; 
-    margin-bottom: 10px; 
-}
-
-.answer-text { 
-    line-height: 1.6; 
-    color: #444; 
-    white-space: pre-wrap; 
-}
-
-/* 오른쪽 패널 (채점 폼) */
-.form-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 20px; 
-}
-
-.status-badge { 
-    font-size: 0.85rem; 
-    padding: 5px 12px; 
-    border-radius: 20px; 
-    font-weight: 600; 
-}
-
-.status-badge.pending { 
-    background: #fff3cd; 
-    color: #856404; 
-}
-
-.status-badge.completed { 
-    background: #d4edda; 
-    color: #155724; 
-}
-
-.criteria-item {
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 15px; 
-}
-
-.criteria-item label { 
-    font-weight: 500; 
-    color: #555; 
-}
-
-.criteria-item input {
-    width: 80px; 
-    padding: 8px; 
-    border: 1px solid #ddd; 
-    border-radius: 6px; 
-    text-align: center;
-}
-
-.action-buttons { 
-    display: flex; 
-    gap: 10px; 
-    margin-top: 30px; 
-}
-
-.btn-save, .btn-ai {
-    flex: 1; 
-    padding: 12px; 
-    border: none; 
-    border-radius: 8px; 
-    font-weight: 600; 
-    cursor: pointer; 
-    transition: 0.2s;
-}
-
-.btn-save { 
-    background-color: #333; 
-    color: white; 
-}
-
-.btn-ai { 
-    background-color: #5C95F8; 
-    color: white; 
-
-}
-.btn-save.disabled, .btn-ai.disabled { 
-    background-color: #ccc; 
-    cursor: not-allowed; 
-}
-
-/* AI 결과 영역 */
-.ai-result-section { 
-    margin-top: 25px; 
-    animation: fadeIn 0.5s; 
-}
-
-.ai-header { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 15px; 
-}
-
-.ai-score { 
-    background: #e7f5ff; 
-    color: #1971c2; 
-    padding: 5px 12px; 
-    border-radius: 15px; 
-    font-weight: 700; 
-}
-
-.ai-feedback-box { 
-    background: #f8f9fa; 
-    padding: 20px; 
-    border-radius: 8px; 
-    border-left: 4px solid #5C95F8; 
-}
-
-.divider { 
-    border: 0; 
-    border-top: 1px dashed #ddd; 
-    margin: 20px 0; 
-}
-
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* 반응형 스타일 */
-@media (max-width: 900px) {
-    .workspace { 
-        flex-direction: column; 
-        height: auto; 
-    }
-    .left-panel, .right-panel { 
-        height: auto; 
-        min-height: 400px; 
-    }
-}
-
-/* --- 반응형 스타일 (화면 폭 768px 이하일 때 적용) --- */
-@media (max-width: 768px) {
-    
-    /* 1. 헤더 여백 줄이기 */
-    .top-header {
-        padding: 0 20px; /* 좌우 여백을 40px -> 20px로 축소 */
-    }
-
-    /* 2. 검색창 너비 조정 */
-    .search-bar-wrapper {
-        width: 90%; /* 고정 크기 대신 화면의 90%만 차지하게 설정 */
-        max-width: none; /* 기존 최대 너비 제한 해제 (선택사항) */
-    }
-
-    /* 3. 검색 버튼 및 입력창 내부 여백 조정 */
-    .search-input {
-        /* 버튼 공간(오른쪽)은 유지하되, 왼쪽 여백과 위아래를 조금 줄임 */
-        padding: 15px 90px 15px 20px; 
-        font-size: 0.9rem; /* 글자 크기 살짝 줄임 */
-    }
-
-    .search-btn {
-        padding: 8px 15px; /* 버튼 크기 살짝 줄임 */
-        font-size: 0.9rem;
-    }
-
-    /* 4. 안내 문구 줄 바꿈 및 너비 제한 */
-    .empty-state-container {
-        width: 90%; /* 화면 너비의 90%만 사용 */
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 15%; /* 위쪽 여백 약간 증가 */
-    }
-
-    .empty-text {
-        width: 100%;
-        font-size: 1rem;       /* 글자 크기 조정 */
-        word-break: keep-all;  /* 단어 단위로 줄 바꿈  */
-        line-height: 1.5;      /* 줄 간격 넉넉하게 */
-        padding: 0 10px;       /* 텍스트 좌우 여백 */
-    }
-    
-    .empty-illustration {
-        width: 140px; /* 이미지 크기도 모바일에선 조금 작게 */
-    }
+.left-panel,
+.right-panel {
+  flex: 1;
+  border: 1px solid #ddd;
+  padding: 20px;
+  border-radius: 8px;
 }
