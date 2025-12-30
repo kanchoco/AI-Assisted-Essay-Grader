@@ -108,6 +108,7 @@ def get_student(student_id):
 def ai_grade():
     data = request.json
 
+    student_id = data["student_id"]
     student_uid = data["student_uid"]
     rater_uid = data["rater_uid"]
     expert_knw = data["expert_knw_score"]
@@ -119,9 +120,9 @@ def ai_grade():
         # 학생 답안 조회
         student = conn.execute(
             sqlalchemy.text(
-                "SELECT student_answer FROM studentDB WHERE student_uid = :uid"
+                "SELECT student_answer FROM studentDB WHERE student_id = :id"
             ),
-            {"uid": student_uid}
+            {"id": student_id}
         ).fetchone()
 
         if not student:
