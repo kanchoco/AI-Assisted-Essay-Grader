@@ -25,6 +25,14 @@ def sha256(s: str) -> str:
     return hashlib.sha256(s.encode("utf-8")).hexdigest()
 
 
+def normalize_score(n):
+    try:
+        n = int(round(float(n)))   # string / float 허용
+        return max(1, min(10, n))  # 1~10 강제
+    except Exception:
+        raise ValueError(f"점수 변환 실패: {n}")
+
+
 def validate(parsed: dict):
     if not isinstance(parsed, dict):
         raise ValueError("응답 파싱 실패")
@@ -33,13 +41,15 @@ def validate(parsed: dict):
     rationales = parsed.get("rationales")
     key_sentences = parsed.get("keySentences")
 
-    def in_range(n):
-        return isinstance(n, int) and 1 <= n <= 10
+    if not scores or not rationales or not key_sentences:
+        raise ValueError("scores / rationales / keySentences 누락")
 
-    if not scores \
-       or not in_range(scores.get("criticalThinking")) \
-       or not in_range(scores.get("scientificKnowledge")):
-        raise ValueError("점수(1~10 정수) 규격 위반")
+    scores["criticalThinking"] = normalize_score(
+        scores.get("criticalThinking")
+    )
+    scores["scientificKnowledge"] = normalize_score(
+        scores.get("scientificKnowledge")
+    )
 
     for k in ["criticalThinking", "scientificKnowledge"]:
         r = rationales.get(k)
@@ -54,8 +64,11 @@ def validate(parsed: dict):
         if len(r) != len(ks):
             raise ValueError(f"{k}: 근거 수와 문장 수 불일치")
 
-        if any(not x.strip() for x in r) or any(not x.strip() for x in ks):
-            raise ValueError(f"{k}: 빈 문자열 포함")
+        if any(not x.strip() for x in r):
+            raise ValueError(f"{k}: 빈 근거 문자열")
+
+        if any(not x.strip() for x in ks):
+            raise ValueError(f"{k}: 빈 문장 문자열")
 
 
 def analyze_essay(essay: str) -> dict:
@@ -121,7 +134,7 @@ def analyze_essay(essay: str) -> dict:
 
     raw_text = raw_text.strip()
 
-    # ```json ``` 제거
+    # ```json ``` 제거 방어
     if raw_text.startswith("```"):
         raw_text = (
             raw_text
