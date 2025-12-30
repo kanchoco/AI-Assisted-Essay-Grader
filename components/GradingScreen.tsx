@@ -45,7 +45,7 @@ const GradingScreen: React.FC<GradingProps> = ({
     }
 
     const data = await res.json();
-    setStudentUid(data.student_id);
+    setStudentUid(data.student_uid);
     setStudentAnswer(data.student_answer);
     setIsGradingStarted(true);
   };
