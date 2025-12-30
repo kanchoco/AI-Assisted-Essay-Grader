@@ -97,7 +97,9 @@ def analyze_essay(essay: str) -> dict:
 
 {rubric_prompt}
 
-반드시 JSON 형식으로만 응답하세요.
+반드시 JSON만 출력하시오.
+설명, 주석, ```json``` 코드블록 사용 금지.
+JSON 외 텍스트가 있으면 오류로 간주됨.
 
 학생 글:
 ---
