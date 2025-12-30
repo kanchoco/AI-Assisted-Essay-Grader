@@ -256,6 +256,12 @@ def login():
             "rater_uid": new_uid,
             "rater_id": rater_id
         }
+    
+@app.get("/__routes")
+def show_routes():
+    return {
+        "routes": [str(r) for r in app.url_map.iter_rules()]
+    }
 
 # 프런트엔드 서빙
 @app.route("/", defaults={"path": ""})
@@ -265,3 +271,4 @@ def serve_react(path):
     if path != "" and os.path.exists(file_path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
     return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
+
