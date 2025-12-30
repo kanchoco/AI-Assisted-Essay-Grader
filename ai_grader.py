@@ -33,23 +33,30 @@ def normalize_score(n):
         raise ValueError(f"점수 변환 실패: {n}")
 
 
+def normalize_score(n):
+    try:
+        n = int(round(float(n)))
+        return max(1, min(10, n))
+    except Exception:
+        return None
+
+
 def validate(parsed: dict):
     if not isinstance(parsed, dict):
         raise ValueError("응답 파싱 실패")
 
-    scores = parsed.get("scores")
-    rationales = parsed.get("rationales")
-    key_sentences = parsed.get("keySentences")
+    scores = parsed.get("scores", {})
+    rationales = parsed.get("rationales", {})
+    key_sentences = parsed.get("keySentences", {})
 
-    if not scores or not rationales or not key_sentences:
-        raise ValueError("scores / rationales / keySentences 누락")
+    ct = normalize_score(scores.get("criticalThinking"))
+    sk = normalize_score(scores.get("scientificKnowledge"))
 
-    scores["criticalThinking"] = normalize_score(
-        scores.get("criticalThinking")
-    )
-    scores["scientificKnowledge"] = normalize_score(
-        scores.get("scientificKnowledge")
-    )
+    if ct is None or sk is None:
+        raise ValueError("점수 변환 실패")
+
+    parsed["scores"]["criticalThinking"] = ct
+    parsed["scores"]["scientificKnowledge"] = sk
 
     for k in ["criticalThinking", "scientificKnowledge"]:
         r = rationales.get(k)
@@ -63,12 +70,6 @@ def validate(parsed: dict):
 
         if len(r) != len(ks):
             raise ValueError(f"{k}: 근거 수와 문장 수 불일치")
-
-        if any(not x.strip() for x in r):
-            raise ValueError(f"{k}: 빈 근거 문자열")
-
-        if any(not x.strip() for x in ks):
-            raise ValueError(f"{k}: 빈 문장 문자열")
 
 
 def analyze_essay(essay: str) -> dict:
