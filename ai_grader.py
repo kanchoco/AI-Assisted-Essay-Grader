@@ -58,16 +58,12 @@ def validate(parsed: dict):
             raise ValueError(f"{k}: 빈 문자열 포함")
 
 
-# ------------------------
-# Core AI analysis
-# ------------------------
 def analyze_essay(essay: str) -> dict:
     FS_VERSION = "fs_v3"
     RUBRIC_VERSION = "rubric_v2"
 
     rubric_prompt = f"""
 다음은 고정된 채점 기준표(버전 {RUBRIC_VERSION})입니다.
-이 기준은 모든 채점에 동일하게 적용되어야 합니다.
 
 [채점 기준표]
 1. 비판적 사고력 (Critical Thinking)
@@ -97,9 +93,9 @@ def analyze_essay(essay: str) -> dict:
 
 {rubric_prompt}
 
-반드시 JSON만 출력하시오.
-설명, 주석, ```json``` 코드블록 사용 금지.
-JSON 외 텍스트가 있으면 오류로 간주됨.
+⚠️ 반드시 JSON만 출력하시오.
+⚠️ 설명, 주석, 마크다운, ```json``` 코드블록 사용 금지.
+⚠️ JSON 외 텍스트가 있으면 오류로 간주됨.
 
 학생 글:
 ---
@@ -118,7 +114,29 @@ JSON 외 텍스트가 있으면 오류로 간주됨.
     )
 
     response = model.generate_content(prompt)
-    parsed = json.loads(response.text)
+    raw_text = response.text
+
+    if not raw_text or not raw_text.strip():
+        raise ValueError("Gemini returned empty response")
+
+    raw_text = raw_text.strip()
+
+    # ```json ``` 제거
+    if raw_text.startswith("```"):
+        raw_text = (
+            raw_text
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
+
+    try:
+        parsed = json.loads(raw_text)
+    except json.JSONDecodeError:
+        print("===== GEMINI RAW RESPONSE =====")
+        print(raw_text)
+        print("================================")
+        raise ValueError("Gemini response is not valid JSON")
 
     validate(parsed)
 
@@ -127,10 +145,6 @@ JSON 외 텍스트가 있으면 오류로 간주됨.
 
 
 def run_ai_grading(essay_text: str):
-    """
-    프런트엔드/UI/DB 저장에 바로 쓰는 포맷
-    """
-
     parsed = analyze_essay(essay_text)
 
     return {
