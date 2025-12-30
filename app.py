@@ -106,9 +106,12 @@ def get_student(student_id):
 
 @app.post("/ai_grade")
 def ai_grade():
-    data = request.json
+    data = request.get_json(silent=True)
+    if data is None:
+        return {"success": False, "message": "Invalid JSON"}, 400
 
     student_id = data["student_id"]
+    student_uid = data["student_uid"]
     rater_uid = data["rater_uid"]
     expert_knw = data["expert_knw_score"]
     expert_crt = data["expert_crt_score"]
@@ -117,25 +120,20 @@ def ai_grade():
 
     with engine.connect() as conn:
         student = conn.execute(
-            sqlalchemy.text("""
-                SELECT student_uid, student_answer
-                FROM studentDB
-                WHERE student_id = :id
-            """),
+            sqlalchemy.text(
+                "SELECT student_answer FROM studentDB WHERE student_id = :id"
+            ),
             {"id": student_id}
-        ).mappings().fetchone()
+        ).mappings().fetchone()   # ⭐ 핵심
 
         if not student:
             return {"success": False, "message": "student not found"}, 404
 
-        student_uid = student["student_uid"]
         essay = student["student_answer"]
 
-        # AI 채점
         ai_result = run_ai_grading(essay)
         score_uid = str(uuid.uuid4())
 
-        # AI 점수 저장
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO ai_scoreDB
@@ -158,7 +156,6 @@ def ai_grade():
             }
         )
 
-        # 전문가 점수 저장
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO rater_scoreDB
@@ -184,7 +181,6 @@ def ai_grade():
         "score_uid": score_uid,
         "ai_result": ai_result
     }
-
 
 
 @app.post("/add_final_score")
