@@ -16,7 +16,7 @@ FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "dist")
 app = Flask(
     __name__,
     static_folder=FRONTEND_BUILD_PATH,
-    static_url_path="/static"
+    static_url_path=""
 )
 
 CORS(app)
@@ -45,6 +45,12 @@ def get_engine():
         creator=getconn,
         pool_pre_ping=True,
     )
+
+@app.get("/__routes")
+def show_routes():
+    return {
+        "routes": [str(r) for r in app.url_map.iter_rules()]
+    }
 
 # API 영역
 
@@ -256,12 +262,6 @@ def login():
             "rater_uid": new_uid,
             "rater_id": rater_id
         }
-    
-@app.get("/__routes")
-def show_routes():
-    return {
-        "routes": [str(r) for r in app.url_map.iter_rules()]
-    }
 
 # 프런트엔드 서빙
 @app.route("/")
