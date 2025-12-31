@@ -30,4 +30,4 @@ COPY --from=frontend /frontend/dist ./dist
 # Cloud Run 포트
 ENV PORT=8080
 
-CMD ["gunicorn", "-b", ":8080", "--chdir", "/app", "app:app"]
+CMD ["python", "app.py"]
