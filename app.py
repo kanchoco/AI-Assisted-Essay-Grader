@@ -16,7 +16,7 @@ FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "dist")
 app = Flask(
     __name__,
     static_folder=FRONTEND_BUILD_PATH,
-    static_url_path = ""
+    static_url_path="/static"
 )
 
 CORS(app)
@@ -264,11 +264,14 @@ def show_routes():
     }
 
 # 프런트엔드 서빙
-@app.route("/", defaults={"path": ""})
+@app.route("/")
+def serve_index():
+    return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
+
+
 @app.route("/<path:path>")
 def serve_react(path):
     file_path = os.path.join(FRONTEND_BUILD_PATH, path)
-    if path != "" and os.path.exists(file_path):
+    if os.path.exists(file_path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
     return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
-
