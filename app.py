@@ -209,39 +209,43 @@ def add_final_score():
 
     return {"success": True}
 
-
-@app.post("/api/login")
+@app.post("/login")
 def login():
-    data = request.get_json(silent=True) or {}
+    data = request.json
     rater_id = data.get("rater_id")
     password = data.get("password")
+
+    COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
 
     if password != COMMON_PASSWORD:
         return {
             "success": False,
             "message": "비밀번호 오류"
-        }, 401
+        }
 
     engine = get_engine()
 
-    with engine.begin() as conn:
+    with engine.connect() as conn:
         row = conn.execute(
             sqlalchemy.text("""
-                SELECT rater_uid
+                SELECT rater_uid, rater_id
                 FROM raterDB
                 WHERE rater_id = :rid
             """),
             {"rid": rater_id}
         ).mappings().fetchone()
 
-        if row:
+        if row is not None:
             return {
                 "success": True,
                 "rater_uid": row["rater_uid"],
-                "rater_id": rater_id,
-            }, 200
+                "rater_id": row["rater_id"]
+            }
 
-        new_uid = str(uuid.uuid4())
+        new_uid = conn.execute(
+            sqlalchemy.text("SELECT UUID() AS uid")
+        ).mappings().fetchone()["uid"]
+
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO raterDB (rater_uid, rater_id)
@@ -250,11 +254,14 @@ def login():
             {"uid": new_uid, "rid": rater_id}
         )
 
+        conn.commit()
+
     return {
         "success": True,
         "rater_uid": new_uid,
-        "rater_id": rater_id,
-    }, 200
+        "rater_id": rater_id
+    }
+
 
 
 @app.route("/", defaults={"path": ""})
