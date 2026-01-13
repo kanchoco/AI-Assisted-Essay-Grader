@@ -209,7 +209,7 @@ def add_final_score():
 
     return {"success": True}
 
-@app.post("/login")
+@app.post("/api/login")
 def login():
     data = request.json
     rater_id = data.get("rater_id")
