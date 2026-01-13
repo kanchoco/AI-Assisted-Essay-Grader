@@ -53,6 +53,33 @@ def normalize_score(n):
 
     return max(1, min(10, score))
 
+def coerce_schema(parsed: dict) -> dict:
+    """
+    Gemini가 잘못된 구조로 응답했을 경우
+    우리가 기대하는 표준 스키마로 변환 시도
+    """
+    if "scores" in parsed:
+        return parsed  # 이미 정상
+
+    # 케이스: 항목별로 풀어서 준 경우
+    if "criticalThinking" in parsed and "scientificKnowledge" in parsed:
+        return {
+            "scores": {
+                "criticalThinking": parsed["criticalThinking"].get("score"),
+                "scientificKnowledge": parsed["scientificKnowledge"].get("score"),
+            },
+            "rationales": {
+                "criticalThinking": parsed["criticalThinking"].get("rationales", []),
+                "scientificKnowledge": parsed["scientificKnowledge"].get("rationales", []),
+            },
+            "keySentences": {
+                "criticalThinking": parsed["criticalThinking"].get("keySentences", []),
+                "scientificKnowledge": parsed["scientificKnowledge"].get("keySentences", []),
+            }
+        }
+
+    raise ValueError("Gemini 응답 스키마 인식 불가")
+
 
 def validate(parsed: dict):
     if not isinstance(parsed, dict):
@@ -129,15 +156,33 @@ def analyze_essay(essay: str) -> dict:
 
 {rubric_prompt}
 
-⚠️ 반드시 JSON만 출력하시오.
-⚠️ 설명, 주석, 마크다운, ```json``` 코드블록 사용 금지.
+⚠️ 반드시 아래 JSON 스키마를 정확히 따르시오.
+⚠️ 키 이름, 중첩 구조, 배열 형태를 절대 변경하지 마시오.
 ⚠️ JSON 외 텍스트가 있으면 오류로 간주됨.
+
+출력 JSON 스키마 (예시 형식 그대로 유지):
+
+{{
+  "scores": {{
+    "criticalThinking": 1~10 사이의 정수,
+    "scientificKnowledge": 1~10 사이의 정수
+  }},
+  "rationales": {{
+    "criticalThinking": ["근거1", "근거2"],
+    "scientificKnowledge": ["근거1", "근거2"]
+  }},
+  "keySentences": {{
+    "criticalThinking": ["문장1", "문장2"],
+    "scientificKnowledge": ["문장1", "문장2"]
+  }}
+}}
 
 학생 글:
 ---
 {canon}
 ---
 """
+
 
     model = genai.GenerativeModel(
         MODEL_VERSION,
