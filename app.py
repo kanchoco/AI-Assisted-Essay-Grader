@@ -262,10 +262,9 @@ def login():
 def serve_index():
     return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
 
-
 @app.route("/<path:path>")
 def serve_react(path):
     file_path = os.path.join(FRONTEND_BUILD_PATH, path)
     if os.path.exists(file_path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
-    return send_from_directory(FRONTEND_BUILD_PATH, "index.html") 
+    return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
