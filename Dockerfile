@@ -21,4 +21,4 @@ COPY --from=frontend /frontend/dist ./dist
 
 ENV PORT=8080
 
-CMD ["gunicorn", "-b", ":8080", "app:app"]
+CMD ["sh", "-c", "exec gunicorn --bind :$PORT app:app"]

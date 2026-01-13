@@ -25,7 +25,7 @@ CORS(app)
 DB_USER = os.environ["DB_USER"]
 DB_PASS = os.environ["DB_PASS"]
 DB_NAME = os.environ["DB_NAME"]
-CONN_NAME = os.environ["CONN_NAME"]  # project:region:instance
+CONN_NAME = os.environ["CONN_NAME"] 
 
 connector = Connector()
 
