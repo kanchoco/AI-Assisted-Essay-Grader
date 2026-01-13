@@ -268,4 +268,4 @@ def serve_react(path):
     file_path = os.path.join(FRONTEND_BUILD_PATH, path)
     if os.path.exists(file_path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
-    return send_from_directory(FRONTEND_BUILD_PATH, "index.html") /_routes를 쓰면 라우팅이 안돼 이걸 안쓰는 방법으로 가고 싶어
+    return send_from_directory(FRONTEND_BUILD_PATH, "index.html") 
