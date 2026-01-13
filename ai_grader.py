@@ -4,6 +4,7 @@ import json
 import hashlib
 from typing import Dict, Any
 import google.generativeai as genai
+import re
 
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -26,34 +27,51 @@ def sha256(s: str) -> str:
 
 
 def normalize_score(n):
-    try:
-        n = int(round(float(n)))   # string / float 허용
-        return max(1, min(10, n))  # 1~10 강제
-    except Exception:
-        raise ValueError(f"점수 변환 실패: {n}")
+    """
+    Gemini 출력 점수를 1~10 정수로 정규화
+    허용 예:
+    - 8
+    - 8.0
+    - "8"
+    - "8점"
+    - "총점: 7 / 10"
+    """
+    if n is None:
+        raise ValueError("점수 없음")
 
+    if isinstance(n, (int, float)):
+        score = int(round(n))
 
-def normalize_score(n):
-    try:
-        n = int(round(float(n)))
-        return max(1, min(10, n))
-    except Exception:
-        return None
+    elif isinstance(n, str):
+        match = re.search(r"\d+", n)
+        if not match:
+            raise ValueError(f"점수 숫자 추출 실패: {n}")
+        score = int(match.group())
+
+    else:
+        raise ValueError(f"점수 타입 오류: {type(n)}")
+
+    return max(1, min(10, score))
 
 
 def validate(parsed: dict):
     if not isinstance(parsed, dict):
         raise ValueError("응답 파싱 실패")
 
-    scores = parsed.get("scores", {})
-    rationales = parsed.get("rationales", {})
-    key_sentences = parsed.get("keySentences", {})
+    scores = parsed.get("scores")
+    rationales = parsed.get("rationales")
+    key_sentences = parsed.get("keySentences")
 
+    if not isinstance(scores, dict):
+        raise ValueError("scores 누락 또는 형식 오류")
+    if not isinstance(rationales, dict):
+        raise ValueError("rationales 누락 또는 형식 오류")
+    if not isinstance(key_sentences, dict):
+        raise ValueError("keySentences 누락 또는 형식 오류")
+
+    # 점수 정규화
     ct = normalize_score(scores.get("criticalThinking"))
     sk = normalize_score(scores.get("scientificKnowledge"))
-
-    if ct is None or sk is None:
-        raise ValueError("점수 변환 실패")
 
     parsed["scores"]["criticalThinking"] = ct
     parsed["scores"]["scientificKnowledge"] = sk
@@ -62,14 +80,18 @@ def validate(parsed: dict):
         r = rationales.get(k)
         ks = key_sentences.get(k)
 
-        if not isinstance(r, list) or not isinstance(ks, list):
-            raise ValueError(f"{k}: 근거/문장 배열 아님")
+        if not isinstance(r, list):
+            raise ValueError(f"{k}: rationales 리스트 아님")
+        if not isinstance(ks, list):
+            raise ValueError(f"{k}: keySentences 리스트 아님")
 
-        if len(r) < 2 or len(ks) < 2:
-            raise ValueError(f"{k}: 근거/문장 2개 이상 필요")
+        if len(r) < 2:
+            raise ValueError(f"{k}: 근거 2개 미만")
+        if len(ks) < 2:
+            raise ValueError(f"{k}: 문장 2개 미만")
 
         if len(r) != len(ks):
-            raise ValueError(f"{k}: 근거 수와 문장 수 불일치")
+            raise ValueError(f"{k}: 근거/문장 개수 불일치")
 
 
 def analyze_essay(essay: str) -> dict:
