@@ -271,3 +271,7 @@ def serve_react(path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
 
     return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
