@@ -210,7 +210,7 @@ def add_final_score():
     return {"success": True}
 
 
-@app.route("/api/login", methods="POST")
+@app.post("/api/login")
 def login():
     data = request.get_json(silent=True) or {}
     rater_id = data.get("rater_id")
