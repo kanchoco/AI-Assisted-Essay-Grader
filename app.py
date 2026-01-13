@@ -1,18 +1,18 @@
 import os
+import uuid
+import pandas as pd
+import sqlalchemy
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google.cloud.sql.connector import Connector
-import sqlalchemy
-import pandas as pd
-import uuid
+
 from ai_grader import run_ai_grading
 
 
-# React build 경로
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_BUILD_PATH = os.path.join(BASE_DIR, "dist")
 
-# Flask app
 app = Flask(
     __name__,
     static_folder=FRONTEND_BUILD_PATH,
@@ -21,15 +21,16 @@ app = Flask(
 
 CORS(app)
 
-# 환경변수 (Cloud Run)
+
 DB_USER = os.environ["DB_USER"]
 DB_PASS = os.environ["DB_PASS"]
 DB_NAME = os.environ["DB_NAME"]
-CONN_NAME = os.environ["CONN_NAME"]  # project:region:instance
+CONN_NAME = os.environ["CONN_NAME"] 
+COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
 
 connector = Connector()
 
-# Cloud SQL 연결
+
 def get_engine():
     def getconn():
         return connector.connect(
@@ -37,7 +38,7 @@ def get_engine():
             "pymysql",
             user=DB_USER,
             password=DB_PASS,
-            db=DB_NAME
+            db=DB_NAME,
         )
 
     return sqlalchemy.create_engine(
@@ -46,35 +47,26 @@ def get_engine():
         pool_pre_ping=True,
     )
 
-@app.get("/__routes")
-def show_routes():
-    return {
-        "routes": [str(r) for r in app.url_map.iter_rules()]
-    }
 
-# API 영역
-
-@app.post("/upload_excel")
+@app.post("/api/upload_excel")
 def upload_excel():
     if "file" not in request.files:
-        return {"status": "error", "message": "No file uploaded"}, 400
-
-    file = request.files["file"]
+        return {"success": False, "message": "No file uploaded"}, 400
 
     try:
-        df = pd.read_excel(file)
+        df = pd.read_excel(request.files["file"])
 
-        required_cols = ["이름", "text"]
-        for col in required_cols:
+        for col in ["이름", "text"]:
             if col not in df.columns:
                 return {
-                    "status": "error",
+                    "success": False,
                     "message": f"엑셀에 필요한 컬럼이 없습니다: {col}"
                 }, 400
 
         engine = get_engine()
-        with engine.connect() as conn:
-            inserted = 0
+        inserted = 0
+
+        with engine.begin() as conn:
             for _, row in df.iterrows():
                 conn.execute(
                     sqlalchemy.text("""
@@ -85,35 +77,41 @@ def upload_excel():
                     {
                         "uid": str(uuid.uuid4()),
                         "sid": str(row["이름"]).strip(),
-                        "answer": str(row["text"]).strip()
+                        "answer": str(row["text"]).strip(),
                     }
                 )
                 inserted += 1
-            conn.commit()
 
-        return {"status": "success", "message": f"{inserted} students added"}
+        return {"success": True, "inserted": inserted}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
+        return {"success": False, "message": str(e)}, 500
 
-@app.get("/student/<student_id>")
+
+@app.get("/api/student/<student_id>")
 def get_student(student_id):
     engine = get_engine()
+
     with engine.connect() as conn:
         row = conn.execute(
-            sqlalchemy.text("SELECT * FROM studentDB WHERE student_id = :id"),
+            sqlalchemy.text("""
+                SELECT *
+                FROM studentDB
+                WHERE student_id = :id
+            """),
             {"id": student_id}
         ).mappings().fetchone()
 
-        if not row:
-            return {"error": "student not found"}, 404
+    if not row:
+        return {"success": False, "message": "student not found"}, 404
 
-        return jsonify(dict(row))
+    return {"success": True, "student": dict(row)}
 
-@app.post("/ai_grade")
+
+@app.post("/api/ai_grade")
 def ai_grade():
     data = request.get_json(silent=True)
-    if data is None:
+    if not data:
         return {"success": False, "message": "Invalid JSON"}, 400
 
     student_id = data["student_id"]
@@ -123,7 +121,7 @@ def ai_grade():
 
     engine = get_engine()
 
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         student = conn.execute(
             sqlalchemy.text("""
                 SELECT student_uid, student_answer
@@ -143,7 +141,7 @@ def ai_grade():
         ai_result = run_ai_grading(essay)
         score_uid = str(uuid.uuid4())
 
-        # AI 점수 저장
+        # AI 점수
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO ai_scoreDB
@@ -166,7 +164,7 @@ def ai_grade():
             }
         )
 
-        # 전문가 점수 저장
+        # 전문가 점수
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO rater_scoreDB
@@ -185,21 +183,18 @@ def ai_grade():
             }
         )
 
-        conn.commit()
-
     return {
         "success": True,
         "score_uid": score_uid,
-        "ai_result": ai_result
+        "ai_result": ai_result,
     }
 
 
-@app.post("/add_final_score")
+@app.post("/api/add_final_score")
 def add_final_score():
-    data = request.json
     engine = get_engine()
 
-    with engine.connect() as conn:
+    with engine.begin() as conn:
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO final_scoreDB
@@ -209,45 +204,41 @@ def add_final_score():
                 (:score_uid, :student_uid, :rater_uid,
                  :knw_score, :crt_score)
             """),
-            data
+            request.json
         )
-        conn.commit()
 
-    return {"status": "ok"}
+    return {"success": True}
 
-@app.post("/login")
+
+@app.post("/api/login")
 def login():
     data = request.json
     rater_id = data.get("rater_id")
     password = data.get("password")
 
-    COMMON_PASSWORD = os.environ.get("COMMON_PASSWORD", "000000")
-
     if password != COMMON_PASSWORD:
         return {"success": False, "message": "비밀번호 오류"}
 
     engine = get_engine()
-    with engine.connect() as conn:
+
+    with engine.begin() as conn:
         row = conn.execute(
             sqlalchemy.text("""
-                SELECT rater_uid, rater_id
+                SELECT rater_uid
                 FROM raterDB
                 WHERE rater_id = :rid
             """),
             {"rid": rater_id}
         ).mappings().fetchone()
 
-        if row is not None:
+        if row:
             return {
                 "success": True,
                 "rater_uid": row["rater_uid"],
-                "rater_id": row["rater_id"]
+                "rater_id": rater_id,
             }
 
-        new_uid = conn.execute(
-            sqlalchemy.text("SELECT UUID() AS uid")
-        ).mappings().fetchone()["uid"]
-
+        new_uid = str(uuid.uuid4())
         conn.execute(
             sqlalchemy.text("""
                 INSERT INTO raterDB (rater_uid, rater_id)
@@ -255,23 +246,23 @@ def login():
             """),
             {"uid": new_uid, "rid": rater_id}
         )
-        conn.commit()
 
-        return {
-            "success": True,
-            "rater_uid": new_uid,
-            "rater_id": rater_id
-        }
-
-# 프런트엔드 서빙
-@app.route("/")
-def serve_index():
-    return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
+    return {
+        "success": True,
+        "rater_uid": new_uid,
+        "rater_id": rater_id,
+    }
 
 
+
+@app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):
+    if path.startswith("api/"):
+        return {"error": "Not Found"}, 404
+
     file_path = os.path.join(FRONTEND_BUILD_PATH, path)
-    if os.path.exists(file_path):
+    if path and os.path.exists(file_path):
         return send_from_directory(FRONTEND_BUILD_PATH, path)
+
     return send_from_directory(FRONTEND_BUILD_PATH, "index.html")
