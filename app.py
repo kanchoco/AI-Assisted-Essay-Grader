@@ -210,7 +210,7 @@ def add_final_score():
     return {"success": True}
 
 
-@app.route("/api/login", methods=["POST", "OPTIONS"])
+@app.route("/api/login", methods="POST")
 def login():
     data = request.get_json(silent=True) or {}
     rater_id = data.get("rater_id")
@@ -257,12 +257,14 @@ def login():
     }, 200
 
 
-
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def serve_react(path):
     if path.startswith("api/"):
-        return {"error": "Not Found"}, 404
+        return jsonify({
+            "success": False,
+            "message": "API endpoint not found or method not allowed"
+        }), 404
 
     file_path = os.path.join(FRONTEND_BUILD_PATH, path)
     if path and os.path.exists(file_path):
