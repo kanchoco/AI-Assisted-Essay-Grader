@@ -210,14 +210,17 @@ def add_final_score():
     return {"success": True}
 
 
-@app.post("/api/login")
+@app.route("/api/login", methods=["POST", "OPTIONS"])
 def login():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     rater_id = data.get("rater_id")
     password = data.get("password")
 
     if password != COMMON_PASSWORD:
-        return {"success": False, "message": "비밀번호 오류"}
+        return {
+            "success": False,
+            "message": "비밀번호 오류"
+        }, 401
 
     engine = get_engine()
 
@@ -236,7 +239,7 @@ def login():
                 "success": True,
                 "rater_uid": row["rater_uid"],
                 "rater_id": rater_id,
-            }
+            }, 200
 
         new_uid = str(uuid.uuid4())
         conn.execute(
@@ -251,7 +254,7 @@ def login():
         "success": True,
         "rater_uid": new_uid,
         "rater_id": rater_id,
-    }
+    }, 200
 
 
 
