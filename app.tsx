@@ -29,6 +29,7 @@ function App() {
       apiUrl={API_BASE_URL}
       raterId={raterId}
       raterUid={raterUid}
+      onLogout={() => window.location.reload()}
     />
   );
 }
