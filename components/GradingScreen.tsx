@@ -34,11 +34,12 @@ const GradingScreen: React.FC<GradingProps> = ({
     math: '',
   });
 
+  // 채점 근거(전문가 채점)
+  const [expertRationale, setExpertRationale] = useState('');
+
   // AI 결과
   const [aiResult, setAiResult] = useState<any>(null);
   const [scoreUid, setScoreUid] = useState('');
-  const [aiDone, setAiDone] = useState(false);
-  const [finalSaved, setFinalSaved] = useState(false);
 
   // 학생 조회 (student_id 기준)
   const handleSearch = async () => {
@@ -62,10 +63,11 @@ const GradingScreen: React.FC<GradingProps> = ({
 
       // 상태 초기화 (새 학생 검색 시)
       setExpertScore({ critical: '', math: '' });
+      setExpertRationale(''); // 새 학생 검색 시 채점 근거 초기화
       setAiResult(null);
       setIsAiPanelOpen(false);
-      setIsScoreLocked(false);
-      setIsConfirmed(false);
+      setIsScoreLocked(false); //잠금 해제
+      setIsConfirmed(false); //확정 해제
       // UI: 작업 공간 표시
       setIsGradingStarted(true);
 
@@ -96,6 +98,7 @@ const GradingScreen: React.FC<GradingProps> = ({
           rater_uid: raterUid,
           expert_crt_score: Number(expertScore.critical),
           expert_knw_score: Number(expertScore.math),
+          expert_rationale: expertRationale,
         }),
       });
 
@@ -110,7 +113,7 @@ const GradingScreen: React.FC<GradingProps> = ({
 
       setAiResult(data.ai_result);
       setScoreUid(data.score_uid);
-      setAiDone(true);
+
     } catch (err) {
       alert('AI 서버 오류');
       setIsScoreLocked(false);
@@ -140,8 +143,7 @@ const GradingScreen: React.FC<GradingProps> = ({
       const data = await res.json();
 
       if (data.status === 'ok') {
-        setFinalSaved(true);
-        setIsConfirmed(true); // [UI] 모든 버튼 비활성화
+        setIsConfirmed(true); // [UI] 모든 버튼 비활성화 (확정 상태)
         alert('점수가 최종 확정되었습니다');
       } else {
         alert('확정 실패');
@@ -222,7 +224,7 @@ const GradingScreen: React.FC<GradingProps> = ({
                                         className="score-input"
                                         value={expertScore.math}
                                         onChange={(e) => setExpertScore({...expertScore, math: e.target.value})}
-                                        disabled={isScoreLocked || isConfirmed || aiDone} // 잠금 로직 적용
+                                        disabled={isScoreLocked || isConfirmed} // 잠금 로직 적용
                                     />
                                 </div>
                                 <div className="score-row">
@@ -232,13 +234,15 @@ const GradingScreen: React.FC<GradingProps> = ({
                                         className="score-input"
                                         value={expertScore.critical}
                                         onChange={(e) => setExpertScore({...expertScore, critical: e.target.value})}
-                                        disabled={isScoreLocked || isConfirmed || aiDone} // 잠금 로직 적용
+                                        disabled={isScoreLocked || isConfirmed} // 잠금 로직 적용
                                     />
                                 </div>
 
                                 <textarea 
                                     className="reason-box"
                                     placeholder="채점 근거(선택):"
+                                    value={expertRationale} // 값 연결
+                                    onChange={(e) => setExpertRationale(e.target.value)} // 입력 시 상태 업데이트
                                     disabled={isScoreLocked || isConfirmed}
                                 />
 
@@ -264,7 +268,7 @@ const GradingScreen: React.FC<GradingProps> = ({
                                         <button 
                                             className="btn-save" 
                                             onClick={handleFinalSave}
-                                            disabled={!isAnalysisComplete || isConfirmed || finalSaved}
+                                            disabled={!isAnalysisComplete || isConfirmed}
                                         >
                                             점수 확정
                                         </button>
