@@ -28,38 +28,35 @@ function App() {
   }
 
   return (
-    <div>
+    <div style={{ minHeight: "100vh" }}>
       {/* 상단 네비게이션 */}
-      <div style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
-        <button onClick={() => setPage("grading")}>
-          채점 화면
-        </button>
-        <button
-          onClick={() => setPage("upload")}
-          style={{ marginLeft: "10px" }}
-        >
-          학생 업로드
-        </button>
-        <button
-          onClick={() => window.location.reload()}
-          style={{ marginLeft: "20px" }}
-        >
-          로그아웃
-        </button>
+      <div
+        style={{
+          padding: "10px",
+          borderBottom: "1px solid #ddd",
+          display: "flex",
+          gap: "10px",
+        }}
+      >
+        <button onClick={() => setPage("grading")}>채점 화면</button>
+        <button onClick={() => setPage("upload")}>학생 업로드</button>
+        <button onClick={() => setIsLoggedIn(false)}>로그아웃</button>
       </div>
 
-      {/* 페이지 본문 */}
-      {page === "grading" && (
-        <GradingScreen
-          apiUrl={API_BASE_URL}
-          raterId={raterId}
-          raterUid={raterUid}
-        />
-      )}
+      {/* 페이지 영역 */}
+      <div style={{ padding: "20px" }}>
+        {page === "grading" && (
+          <GradingScreen
+            apiUrl={API_BASE_URL}
+            raterId={raterId}
+            raterUid={raterUid}
+          />
+        )}
 
-      {page === "upload" && (
-        <UploadStudentPage apiUrl={API_BASE_URL} />
-      )}
+        {page === "upload" && (
+          <UploadStudentPage apiUrl={API_BASE_URL} />
+        )}
+      </div>
     </div>
   );
 }
