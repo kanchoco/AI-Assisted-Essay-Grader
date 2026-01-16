@@ -28,8 +28,9 @@ function App() {
     <GradingScreen
       apiUrl={API_BASE_URL}
       raterId={raterId}
-      raterUid={raterUid}
-    />
+      raterUid={raterUid} onLogout={function (): void {
+        throw new Error("Function not implemented.");
+      } }    />
   );
 }
 
