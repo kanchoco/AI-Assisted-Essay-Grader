@@ -28,22 +28,23 @@ function App() {
   }
 
   return (
-<<<<<<< HEAD
-    <GradingScreen
-      apiUrl={API_BASE_URL}
-      raterId={raterId}
-      raterUid={raterUid}
-      onLogout={() => window.location.reload()}
-    />
-=======
     <div>
       {/* 상단 네비게이션 */}
       <div style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
         <button onClick={() => setPage("grading")}>
           채점 화면
         </button>
-        <button onClick={() => setPage("upload")} style={{ marginLeft: "10px" }}>
+        <button
+          onClick={() => setPage("upload")}
+          style={{ marginLeft: "10px" }}
+        >
           학생 업로드
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ marginLeft: "20px" }}
+        >
+          로그아웃
         </button>
       </div>
 
@@ -60,7 +61,6 @@ function App() {
         <UploadStudentPage apiUrl={API_BASE_URL} />
       )}
     </div>
->>>>>>> 47df2c2 (add app)
   );
 }
 
