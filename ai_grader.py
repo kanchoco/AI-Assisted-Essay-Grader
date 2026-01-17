@@ -1,4 +1,3 @@
-# ai_grader.py
 import os
 import json
 import hashlib
@@ -126,11 +125,37 @@ def analyze_essay(essay: str) -> dict:
     RUBRIC_VERSION = "rubric_v2"
 
     rubric_prompt = f"""
+[역할]
+당신은 엄격하고 비판적인 대학 수준의 평가자입니다.
+학생의 에세이를 논리적 정합성과 과학적 정확성에 기반하여 냉정하게 평가하십시오.
+점수 인플레이션을 경계하고, 깐깐하게 채점하십시오.
+
+[답변 스타일 가이드]
+평가 근거(rationales)를 작성할 때는 구어체나 존댓말(~습니다, ~해요 등)을 사용하지 마십시오.
+대신, '~함', ~'음', '~임' 등의 명사형 종결 어미(개조식)를 사용하여 간결하고 단호하게 작성하십시오.
+- 나쁜 예: "이 답변은 논리적 흐름이 부족합니다."
+- 좋은 예: "논리적 흐름이 부족함." / "인과관계 설정이 미흡함."
+    
 다음은 고정된 채점 기준표(버전 {RUBRIC_VERSION})입니다.
 
+각 항목은 1점(최하)부터 10점(최상) 사이의 점수로 평가합니다.
+점수를 매길 때는 아래 '핵심 평가 요소'를 종합적으로 고려하십시오.
+
 [채점 기준표]
-1. 비판적 사고력 (Critical Thinking)
-2. 수과학적 지식 (Scientific Knowledge)
+1. 수과학적 지식 (Scientific Knowledge)
+    [핵심 평가 요소]
+    - 개념의 정확성: 논리적 흐름, 인과관계 추론, 근거의 타당성 평가.
+    - 용어의 적절성: 용어의 적절성, 개념의 정확한 사용 여부 평가.
+    - 오개념 유무: 오개념이나 사실 관계 오류 여부 평가.
+    - 설명의 구체성: 두루뭉술한 설명 대신 명확한 과학적 근거를 제시하는지 평가.
+
+2. 비판적 사고력 (Critical Thinking)
+    [핵심 평가 요소]
+    - 논리적 흐름: 주장이 서론부터 결론까지 모순 없이 연결되는가?
+    - 인과관계의 타당성: 인과관계의 타당성을 평가.
+    - 근거의 충분성: 주장을 뒷받침하는 근거가 타당하고 충분한가?
+    - 심층적 고찰: 단편적인 사고를 넘어, 다각도에서 문제를 바라보았는지 평가
+
 
 각 항목은 1~10점 사이의 정수로 평가합니다.
 각 점수에 대해 평가 근거 2개 이상과
@@ -156,6 +181,8 @@ def analyze_essay(essay: str) -> dict:
 
 {rubric_prompt}
 
+⚠️`keySentences`는 반드시 학생 글에 있는 문장을 **토씨 하나 틀리지 않고 그대로(Exact Match)** 가져와야 합니다.
+⚠️`rationales`는 위에서 정의한 **'~함' 체**로 간결하게 작성하십시오.
 ⚠️ 반드시 아래 JSON 스키마를 정확히 따르시오.
 ⚠️ 키 이름, 중첩 구조, 배열 형태를 절대 변경하지 마시오.
 ⚠️ JSON 외 텍스트가 있으면 오류로 간주됨.
@@ -164,16 +191,16 @@ def analyze_essay(essay: str) -> dict:
 
 {{
   "scores": {{
-    "criticalThinking": 1~10 사이의 정수,
-    "scientificKnowledge": 1~10 사이의 정수
+    "scientificKnowledge": 1~10 사이의 ,
+    "criticalThinking": 1~10 사이의 정수
   }},
   "rationales": {{
-    "criticalThinking": ["근거1", "근거2"],
-    "scientificKnowledge": ["근거1", "근거2"]
+    "scientificKnowledge": ["근거1", "근거2"],
+    "criticalThinking": ["근거1", "근거2"]
   }},
   "keySentences": {{
-    "criticalThinking": ["문장1", "문장2"],
-    "scientificKnowledge": ["문장1", "문장2"]
+    "scientificKnowledge": ["문장1", "문장2"],
+    "criticalThinking": ["문장1", "문장2"]
   }}
 }}
 

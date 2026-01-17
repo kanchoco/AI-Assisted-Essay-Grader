@@ -1,12 +1,97 @@
 import React, { useState } from 'react';
 import './Grading.css';
 
+// [정규식 생성기] 공백, 줄바꿈, 특수문자 처리를 위한 유연한 패턴 생성
+const createFlexiblePattern = (text: string) => {
+  // 1. 특수문자 이스케이프 (., ?, * 등)
+  let escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  // 2. 모든 공백(스페이스, 탭, 줄바꿈)을 정규식의 \s+(공백 하나 이상)로 변환
+  return escaped.replace(/\s+/g, '\\s+');
+};
+
+// 비교용 정규화: 공백뿐만 아니라 마침표(.)와 특수문자도 떼고 글자만 비교
+const normalize = (text: string) => text.replace(/[\s,.?!]+/g, '').trim();
+
 interface GradingProps {
   apiUrl: string;
   raterId: string;
   raterUid: string;
   onLogout: () => void;
 }
+
+// [컴포넌트] 답안 하이라이터
+interface HighlighterProps {
+  text: string;
+  sciSentences?: string[];
+  crtSentences?: string[];
+}
+
+const AnswerHighlighter: React.FC<HighlighterProps> = ({
+  text,
+  sciSentences = [],
+  crtSentences = []
+}) => {
+  if (!text) return null;
+  
+  // 데이터가 없으면 원본 리턴
+  if (sciSentences.length === 0 && crtSentences.length === 0) {
+    return <span style={{ whiteSpace: 'pre-wrap' }}>{text}</span>;
+  }
+
+  const processSentences = (sentences: string[], type: string) => {
+    return sentences.flatMap(sentence => 
+      sentence
+        // 슬래시(/) 또는 " 공백+숫자+점( 1., 2.)" 패턴 앞에서 자르기
+        .split(/\/|(?=\s\d+\.)/) 
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+        .map(s => ({ text: s, type }))
+    );
+  };
+
+  const targets = [
+    ...processSentences(sciSentences, 'sci'),
+    ...processSentences(crtSentences, 'crt')
+  ];
+
+  if (targets.length === 0) return <span style={{ whiteSpace: 'pre-wrap' }}>{text}</span>;
+
+  // 2. 긴 문장부터 찾도록 정렬 (정확도 향상)
+  targets.sort((a, b) => b.text.length - a.text.length);
+
+  // 3. 정규식 패턴 생성 (공백이 달라도 찾을 수 있게 flexiblePattern 사용)
+  const patternString = `(${targets.map(t => createFlexiblePattern(t.text)).join('|')})`;
+  const pattern = new RegExp(patternString, 'g');
+
+  // 4. 텍스트 쪼개기
+  const parts = text.split(pattern);
+
+  return (
+    <span style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+      {parts.map((part, index) => {
+        // 쪼개진 조각(part)이 어떤 타겟과 일치하는지 확인
+        const matchedTarget = targets.find(t => normalize(t.text) === normalize(part));
+
+        if (matchedTarget?.type === 'sci') {
+          return (
+            <span key={index} style={{ backgroundColor: '#B4C6E7'}}>
+              {part}
+            </span>
+          );
+        } else if (matchedTarget?.type === 'crt') {
+          return (
+            <span key={index} style={{ backgroundColor: '#FFE699' }}>
+              {part}
+            </span>
+          );
+        } else {
+          return <span key={index}>{part}</span>;
+        }
+      })}
+    </span>
+  );
+};
 
 const GradingScreen: React.FC<GradingProps> = ({
   apiUrl,
@@ -209,7 +294,14 @@ const GradingScreen: React.FC<GradingProps> = ({
                             <h3 className="mobile-title">Student #{studentId} 답안</h3>
                             <div className="student-card">
                                 {/* 실제 DB 데이터 바인딩 */}
-                                <p className="answer-text">{studentAnswer}</p>
+                                <p className="answer-text">
+                                    <AnswerHighlighter
+                                        text={studentAnswer}
+                                        // AI 결과가 없으면 빈 배열을 넣어 에러를 방지.
+                                        sciSentences={aiResult?.key_sentences?.scientific || []}
+                                        crtSentences={aiResult?.key_sentences?.critical || []}
+                                    />
+                                </p>
                             </div>
                         </div>
 
@@ -300,16 +392,37 @@ const GradingScreen: React.FC<GradingProps> = ({
                                         </div>
                                         
                                         <div className="ai-feedback-container">
-                                            <p className="feedback-title">채점 근거:</p>
-                                            <ul className="feedback-list">
-                                                {/* API에서 받은 근거 리스트 뿌리기 */}
-                                                {aiResult?.rationales?.scientific?.map((r: string, i: number) => (
-                                                    <li key={`sci-${i}`}>{r}</li>
-                                                ))}
-                                                {aiResult?.rationales?.critical?.map((r: string, i: number) => (
-                                                    <li key={`crt-${i}`}>{r}</li>
-                                                ))}
-                                            </ul>
+                                            {/* 1. 수과학적 사고 근거 영역 */}
+                                            <div className="feedback-section" style={{ marginBottom: '20px' }}>
+                                                <h4 className="feedback-label" style={{ display: 'inline-block', marginBottom: '4px' }}>
+                                                    [수과학적 사고]
+                                                </h4>
+                                                <ul className="feedback-list">
+                                                    {aiResult?.rationales?.scientific?.length > 0 ? (
+                                                        aiResult.rationales.scientific.map((r: string, i: number) => (
+                                                            <li key={`sci-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
+                                                        ))
+                                                    ) : (
+                                                        <li>근거 없음</li>
+                                                    )}
+                                                </ul>
+                                            </div>
+
+                                            {/* 2. 비판적 사고 근거 영역 */}
+                                            <div className="feedback-section">
+                                                <h4 className="feedback-label" style={{ display: 'inline-block', marginBottom: '4px' }}>
+                                                    [비판적 사고 근거]
+                                                </h4>
+                                                <ul className="feedback-list">
+                                                    {aiResult?.rationales?.critical?.length > 0 ? (
+                                                        aiResult.rationales.critical.map((r: string, i: number) => (
+                                                            <li key={`crt-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
+                                                        ))
+                                                    ) : (
+                                                        <li>근거 없음</li>
+                                                    )}
+                                                </ul>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
