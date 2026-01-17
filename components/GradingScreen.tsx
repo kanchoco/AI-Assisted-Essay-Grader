@@ -435,7 +435,7 @@ const GradingScreen: React.FC<GradingProps> = ({
                                             {/* 2. 비판적 사고 근거 영역 */}
                                             <div className="feedback-section">
                                                 <h4 className="feedback-label" style={{ display: 'inline-block', marginBottom: '4px' }}>
-                                                    [비판적 사고 근거]
+                                                    [비판적 사고]
                                                 </h4>
                                                 <ul className="feedback-list">
                                                     {aiResult?.rationales?.critical?.length > 0 ? (
