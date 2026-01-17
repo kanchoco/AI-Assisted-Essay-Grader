@@ -11,6 +11,11 @@ function App() {
   const [raterId, setRaterId] = useState("");
   const [raterUid, setRaterUid] = useState("");
 
+  const handleLogout = () => {
+    // 로그인 상태를 false로 변경 (화면이 로그인창으로 바뀜)
+    setIsLoggedIn(false);
+  };
+
   if (!isLoggedIn) {
     return (
       <LoginScreen
@@ -28,9 +33,9 @@ function App() {
     <GradingScreen
       apiUrl={API_BASE_URL}
       raterId={raterId}
-      raterUid={raterUid} onLogout={function (): void {
-        throw new Error("Function not implemented.");
-      } }    />
+      raterUid={raterUid}
+      onLogout={handleLogout}  
+      />
   );
 }
 
