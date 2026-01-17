@@ -29,3 +29,4 @@ dist-ssr
 node_modules
 dist
 .env
+__pycache__/ai_grader.cpython-39.pyc
