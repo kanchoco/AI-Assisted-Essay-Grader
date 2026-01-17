@@ -163,8 +163,16 @@ const GradingScreen: React.FC<GradingProps> = ({
 
   // AI 채점 (전문가 + AI)
   const handleAiGrade = async () => {
+    const mathScore = Number(expertScore.math);
+    const crtScore = Number(expertScore.critical);
+
     if (!expertScore.critical || !expertScore.math) {
       alert('전문가 점수를 입력하세요');
+      return;
+    }
+
+    if (mathScore < 1 || mathScore > 10 || crtScore < 1 || crtScore > 10) {
+      alert('점수는 1점에서 10점 사이의 정수여야 합니다.');
       return;
     }
 
@@ -315,7 +323,15 @@ const GradingScreen: React.FC<GradingProps> = ({
                                         type="number" 
                                         className="score-input"
                                         value={expertScore.math}
-                                        onChange={(e) => setExpertScore({...expertScore, math: e.target.value})}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            // 빈 값(지울 때) 허용 OR 1~10 사이일 때만 상태 업데이트
+                                            if (val === '' || (Number(val) >= 1 && Number(val) <= 10)) {
+                                                setExpertScore({...expertScore, math: val});
+                                            }
+                                        }}
+                                        min="1"
+                                        max="10"
                                         disabled={isScoreLocked || isConfirmed} // 잠금 로직 적용
                                     />
                                 </div>
@@ -325,7 +341,15 @@ const GradingScreen: React.FC<GradingProps> = ({
                                         type="number" 
                                         className="score-input"
                                         value={expertScore.critical}
-                                        onChange={(e) => setExpertScore({...expertScore, critical: e.target.value})}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            // 빈 값 허용 OR 1~10 사이일 때만 업데이트
+                                            if (val === '' || (Number(val) >= 1 && Number(val) <= 10)) {
+                                                setExpertScore({...expertScore, critical: val});
+                                            }
+                                        }}
+                                        min="1"
+                                        max="10"
                                         disabled={isScoreLocked || isConfirmed} // 잠금 로직 적용
                                     />
                                 </div>
