@@ -93,36 +93,16 @@ def upload_excel():
 @app.get("/student/<student_id>")
 def get_student(student_id):
     engine = get_engine()
-
-    # 범위 여부 판단
-    if "-" in student_id:
-        start_id, end_id = student_id.split("-")
-        is_range = True
-    else:
-        start_id = end_id = student_id
-        is_range = False
-
     with engine.connect() as conn:
-        rows = conn.execute(
-            sqlalchemy.text("""
-                SELECT *
-                FROM studentDB
-                WHERE CAST(student_id AS UNSIGNED)
-                      BETWEEN :start_id AND :end_id
-                ORDER BY CAST(student_id AS UNSIGNED)
-            """),
-            {
-                "start_id": start_id,
-                "end_id": end_id,
-            }
-        ).mappings().fetchall()
+        row = conn.execute(
+            sqlalchemy.text("SELECT * FROM studentDB WHERE student_id = :id"),
+            {"id": student_id}
+        ).mappings().fetchone()
 
-        if not rows:
+        if not row:
             return {"error": "student not found"}, 404
 
-        result = [dict(row) for row in rows]
-
-        return jsonify(result)
+        return jsonify(dict(row)) 
 
 
 @app.post("/ai_grade")
