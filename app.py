@@ -90,19 +90,35 @@ def upload_excel():
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
 
-@app.get("/student/<student_id>")
-def get_student(student_id):
+@app.get("/student/<student_range>")
+def get_students(student_range):
     engine = get_engine()
-    with engine.connect() as conn:
-        row = conn.execute(
-            sqlalchemy.text("SELECT * FROM studentDB WHERE student_id = :id"),
-            {"id": student_id}
-        ).mappings().fetchone()
 
-        if not row:
+    # 범위 파싱
+    if "-" in student_range:
+        start_id, end_id = student_range.split("-")
+    else:
+        start_id = end_id = student_range
+
+    with engine.connect() as conn:
+        rows = conn.execute(
+            sqlalchemy.text("""
+                SELECT *
+                FROM studentDB
+                WHERE student_id BETWEEN :start_id AND :end_id
+                ORDER BY student_id
+            """),
+            {
+                "start_id": start_id,
+                "end_id": end_id
+            }
+        ).mappings().fetchall()
+
+        if not rows:
             return {"error": "student not found"}, 404
 
-        return jsonify(dict(row))
+        return jsonify([dict(row) for row in rows])
+
 
 @app.post("/ai_grade")
 def ai_grade():
