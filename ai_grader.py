@@ -13,10 +13,6 @@ MODEL_VERSION = "gemini-2.5-flash"
 def normalize(s: str) -> str:
     return s.replace("\r\n", "\n").strip()
 
-def sha256(s: str) -> str:
-    return hashlib.sha256(s.encode("utf-8")).hexdigest()
-
-
 def normalize_score(n):
     """
     Gemini 출력 점수를 1~10 정수로 정규화
@@ -44,32 +40,32 @@ def normalize_score(n):
 
     return max(1, min(10, score))
 
-def coerce_schema(parsed: dict) -> dict:
-    """
-    Gemini가 잘못된 구조로 응답했을 경우
-    우리가 기대하는 표준 스키마로 변환 시도
-    """
-    if "scores" in parsed:
-        return parsed  # 이미 정상
+# def coerce_schema(parsed: dict) -> dict:
+#     """
+#     Gemini가 잘못된 구조로 응답했을 경우
+#     우리가 기대하는 표준 스키마로 변환 시도
+#     """
+#     if "scores" in parsed:
+#         return parsed  # 이미 정상
 
-    # 케이스: 항목별로 풀어서 준 경우
-    if "criticalThinking" in parsed and "scientificKnowledge" in parsed:
-        return {
-            "scores": {
-                "criticalThinking": parsed["criticalThinking"].get("score"),
-                "scientificKnowledge": parsed["scientificKnowledge"].get("score"),
-            },
-            "rationales": {
-                "criticalThinking": parsed["criticalThinking"].get("rationales", []),
-                "scientificKnowledge": parsed["scientificKnowledge"].get("rationales", []),
-            },
-            "keySentences": {
-                "criticalThinking": parsed["criticalThinking"].get("keySentences", []),
-                "scientificKnowledge": parsed["scientificKnowledge"].get("keySentences", []),
-            }
-        }
+#     # 케이스: 항목별로 풀어서 준 경우
+#     if "criticalThinking" in parsed and "scientificKnowledge" in parsed:
+#         return {
+#             "scores": {
+#                 "criticalThinking": parsed["criticalThinking"].get("score"),
+#                 "scientificKnowledge": parsed["scientificKnowledge"].get("score"),
+#             },
+#             "rationales": {
+#                 "criticalThinking": parsed["criticalThinking"].get("rationales", []),
+#                 "scientificKnowledge": parsed["scientificKnowledge"].get("rationales", []),
+#             },
+#             "keySentences": {
+#                 "criticalThinking": parsed["criticalThinking"].get("keySentences", []),
+#                 "scientificKnowledge": parsed["scientificKnowledge"].get("keySentences", []),
+#             }
+#         }
 
-    raise ValueError("Gemini 응답 스키마 인식 불가")
+#     raise ValueError("Gemini 응답 스키마 인식 불가")
 
 
 def validate(parsed: dict):
@@ -156,17 +152,6 @@ def analyze_essay(essay: str) -> dict:
 
     canon = normalize(essay)
 
-    cache_key = sha256(json.dumps({
-        "essay": canon,
-        "FS_VERSION": FS_VERSION,
-        "RUBRIC_VERSION": RUBRIC_VERSION,
-        "MODEL_VERSION": MODEL_VERSION
-    }, ensure_ascii=False))
-
-    cached = cache_get(cache_key)
-    if cached:
-        return cached
-
     prompt = f"""
 당신은 전문 교육 조교입니다.
 아래 학생 글을 평가하세요.
@@ -183,7 +168,7 @@ def analyze_essay(essay: str) -> dict:
 
 {{
   "scores": {{
-    "scientificKnowledge": 1~10 사이의 ,
+    "scientificKnowledge": 1~10 사이의 정수,
     "criticalThinking": 1~10 사이의 정수
   }},
   "rationales": {{
