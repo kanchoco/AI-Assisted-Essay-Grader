@@ -9,14 +9,6 @@ genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 MODEL_VERSION = "gemini-2.5-flash"
 
-_MEM_CACHE: Dict[str, Any] = {}
-
-def cache_get(k: str):
-    return _MEM_CACHE.get(k)
-
-def cache_set(k: str, v: Any):
-    _MEM_CACHE[k] = v
-
 
 def normalize(s: str) -> str:
     return s.replace("\r\n", "\n").strip()
@@ -248,7 +240,6 @@ def analyze_essay(essay: str) -> dict:
 
     validate(parsed)
 
-    cache_set(cache_key, parsed)
     return parsed
 
 
