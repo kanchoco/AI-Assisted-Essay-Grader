@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LoginScreen from "./components/LoginScreen";
 import GradingScreen from "./components/GradingScreen";
+import './components/Grading.css'
 
 // Cloud Run API URL
 const API_BASE_URL =
@@ -11,20 +12,68 @@ function App() {
   const [raterId, setRaterId] = useState("");
   const [raterUid, setRaterUid] = useState("");
 
+  // 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(true);
+
+// 앱이 처음 실행될 때 브라우저 저장소 확인
+  useEffect(() => {
+    const savedUid = localStorage.getItem("raterUid");
+    const savedId = localStorage.getItem("raterId");
+
+    if (savedUid && savedId) {
+      // 저장된 정보가 있으면 바로 로그인 처리
+      setRaterUid(savedUid);
+      setRaterId(savedId);
+      setIsLoggedIn(true);
+    }
+    
+    // 확인 끝났으면 로딩 해제
+    setIsLoading(false);
+  }, []);
+
+  // 로그인 성공 시 저장소에 기록
+  const handleLoginSuccess = (uid: string, id: string) => {
+    localStorage.setItem("raterUid", uid);
+    localStorage.setItem("raterId", id);
+
+    setRaterUid(uid);
+    setRaterId(id);
+    setIsLoggedIn(true);
+  };
+
   const handleLogout = () => {
-    // 로그인 상태를 false로 변경 (화면이 로그인창으로 바뀜)
+    // 브라우저 저장소에서 삭제
+    localStorage.removeItem("raterUid");
+    localStorage.removeItem("raterId");
+
+    // 상태 초기화
+    setRaterId("");
+    setRaterUid("");
     setIsLoggedIn(false);
   };
+
+  // 로딩 스피너
+  if (isLoading) {
+    return (
+      <div style={{ 
+        height: '100vh', 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        flexDirection: 'column',
+        gap: '10px'
+      }}>
+        <div className="loading-spinner" style={{ width: '40px', height: '40px' }}></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
       <LoginScreen
         apiUrl={API_BASE_URL}
-        onLoginSuccess={(uid, id) => {
-          setRaterUid(uid);
-          setRaterId(id);
-          setIsLoggedIn(true);
-        }}
+        onLoginSuccess={handleLoginSuccess}
       />
     );
   }
@@ -35,7 +84,7 @@ function App() {
       raterId={raterId}
       raterUid={raterUid}
       onLogout={handleLogout}  
-      />
+    />
   );
 }
 
