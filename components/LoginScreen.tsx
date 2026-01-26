@@ -38,10 +38,9 @@ const LoginScreen: React.FC<LoginProps> = ({ apiUrl, onLoginSuccess }) => {
       onLoginSuccess(result.rater_uid, result.rater_id);
     } else {
       alert(result.message ?? "중복된 아이디입니다.");
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-  };
+  }
 
   return (
     <div className="container">
@@ -91,7 +90,11 @@ const LoginScreen: React.FC<LoginProps> = ({ apiUrl, onLoginSuccess }) => {
             </div>
 
             <button type="submit" className="submit-btn" disabled={isLoading}>
-              {isLoading ? "Processing..." : "Login"}
+              {isLoading ? (
+                  <span><i className="fa-solid fa-spinner fa-spin"></i>   Loading...</span>
+              ) : (
+                  "Login"
+              )}
             </button>
           </form>
 
