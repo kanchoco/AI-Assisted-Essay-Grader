@@ -112,6 +112,7 @@ const GradingScreen: React.FC<GradingProps> = ({
   const [studentUid, setStudentUid] = useState('');
   const [studentId, setStudentId] = useState('');
   const [studentAnswer, setStudentAnswer] = useState('');
+  const [studentList, setStudentList] = useState<any[]>([]);
 
   // 전문가 점수
   const [expertScore, setExpertScore] = useState({
@@ -128,13 +129,21 @@ const GradingScreen: React.FC<GradingProps> = ({
 
   // 학생 조회 (student_id 기준)
   const handleSearch = async () => {
-    if (!searchText.trim()) {
+    const input = searchText.trim();
+
+    if (!input) {
       alert('학생 ID를 입력해주세요');
       return;
     }
+  const isRange = input.includes('-');
 
+  const url = isRange
+    ? `${apiUrl}/students/${input}`
+    : `${apiUrl}/student/${input}`;  
+    
     try {
-      const res = await fetch(`${apiUrl}/student/${searchText}`);
+      const res = await fetch(url);
+
       if (!res.ok) {
         alert('학생을 찾을 수 없습니다');
         return;
@@ -142,10 +151,28 @@ const GradingScreen: React.FC<GradingProps> = ({
 
       const data = await res.json();
 
+      if (isRange) {
+      // 범위 조회: 여러 명
+      if (!Array.isArray(data) || data.length === 0) {
+        alert('조회된 학생이 없습니다');
+        return;
+      }
+
+      // 학생 리스트 저장
+      setStudentList(data);
+
+      // 첫 학생을 기본 선택으로 세팅
+      const firstStudent = data[0];
+      setStudentUid(firstStudent.student_uid);
+      setStudentId(firstStudent.student_id);
+      setStudentAnswer(firstStudent.student_answer);
+
+} else {     
+      setStudentList([]);  
       setStudentUid(data.student_uid);
       setStudentId(data.student_id);
       setStudentAnswer(data.student_answer);
-
+    }
       // 상태 초기화 (새 학생 검색 시)
       setExpertScore({ critical: '', math: '' });
       setExpertRationale(''); // 새 학생 검색 시 채점 근거 초기화
@@ -295,7 +322,11 @@ const GradingScreen: React.FC<GradingProps> = ({
                             {isAiPanelOpen && <h2>AI 채점</h2>}
                         </div>
                     </div>
-
+            {studentList.length > 0 && (
+              <div className="range-info">
+                총 {studentList.length}명 조회됨
+              </div>
+            )}
             <div className="row-body">
                         {/* [왼쪽] 학생 답안 */}
                         <div className="column student-column">
