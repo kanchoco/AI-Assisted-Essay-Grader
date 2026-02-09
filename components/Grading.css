@@ -180,10 +180,21 @@
     overflow-y: auto;    /* 내용이 넘치면 세로 스크롤 생성 */
 }
 
-/* 스크롤바 디자인 (크롬/사파리용) */
-.student-card::-webkit-scrollbar { width: 8px; }
-.student-card::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 4px; }
-.student-card::-webkit-scrollbar-track { background-color: #f5f5f5; }
+/* 커스텀 스크롤바 스타일 */
+.custom-scroll::-webkit-scrollbar {
+    width: 8px;  /* 스크롤바 너비 */
+}
+.custom-scroll::-webkit-scrollbar-track {
+    background: #f5f5f5; /* 스크롤바 배경색 (연한 회색) */
+    border-radius: 4px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: #ccc;    /* 스크롤바 핸들 색상 (진한 회색) */
+    border-radius: 4px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: #b3b3b3; /* 마우스 올렸을 때 색상 */
+}
 
 .answer-text {
     line-height: 1.8;
