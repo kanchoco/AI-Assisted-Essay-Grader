@@ -104,6 +104,31 @@ def get_student(student_id):
 
         return jsonify(dict(row)) 
 
+@app.get("/students/<student_range>")
+def get_students_by_range(student_range):
+    try:
+        start_id, end_id = student_range.split("-")
+        start_id = int(start_id)
+        end_id = int(end_id)
+    except ValueError:
+        return {"error": "invalid range format. use start-end"}, 400
+
+    engine = get_engine()
+    with engine.connect() as conn:
+        rows = conn.execute(
+            sqlalchemy.text("""
+                SELECT *
+                FROM studentDB
+                WHERE student_id BETWEEN :start AND :end
+                ORDER BY student_id
+            """),
+            {"start": start_id, "end": end_id}
+        ).mappings().fetchall()
+
+        if not rows:
+            return {"error": "no students found"}, 404
+
+        return [dict(row) for row in rows]
 
 @app.post("/ai_grade")
 def ai_grade():
