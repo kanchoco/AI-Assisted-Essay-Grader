@@ -14,15 +14,6 @@ def normalize(s: str) -> str:
     return s.replace("\r\n", "\n").strip()
 
 def normalize_score(n):
-    """
-    Gemini 출력 점수를 1~10 정수로 정규화
-    허용 예:
-    - 8
-    - 8.0
-    - "8"
-    - "8점"
-    - "총점: 7 / 10"
-    """
     if n is None:
         raise ValueError("점수 없음")
 
@@ -30,7 +21,7 @@ def normalize_score(n):
         score = int(round(n))
 
     elif isinstance(n, str):
-        match = re.search(r"\d+", n)
+        match = re.search(r"-?\d+", n)
         if not match:
             raise ValueError(f"점수 숫자 추출 실패: {n}")
         score = int(match.group())
@@ -38,7 +29,8 @@ def normalize_score(n):
     else:
         raise ValueError(f"점수 타입 오류: {type(n)}")
 
-    return max(1, min(10, score))
+    return max(0, min(10, score))  
+
 
 
 def validate(parsed: dict):
@@ -57,8 +49,8 @@ def validate(parsed: dict):
         raise ValueError("keySentences 누락 또는 형식 오류")
 
     # 점수 정규화
-    ct = normalize_score(scores.get("criticalThinking"))
-    sk = normalize_score(scores.get("scientificKnowledge"))
+    ct = normalize_score(scores.get("criticalThinking", 0))
+    sk = normalize_score(scores.get("scientificKnowledge", 0))
 
     parsed["scores"]["criticalThinking"] = ct
     parsed["scores"]["scientificKnowledge"] = sk
@@ -93,7 +85,14 @@ def analyze_essay(essay: str) -> dict:
 '~함', '~임', '~부족함', '~타당함' 등 명사형 종결 어미(개조식)로 간결하게 작성하십시오.
 
 
-각 항목은 1점(최하)부터 10점(최상) 사이의 정수로 평가하십시오.
+각 항목은 0~10점 사이의 정수로 평가합니다.
+
+0점 기준:
+- 평가 요소가 거의 충족되지 않음
+- 과학적 오류가 다수 존재함
+- 논리 구조가 형성되지 않음
+- 근거가 전혀 제시되지 않음
+
 점수를 매길 때는 아래 핵심 평가 요소를 종합적으로 고려하십시오.
 
 [채점 기준표]
