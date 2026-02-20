@@ -40,33 +40,6 @@ def normalize_score(n):
 
     return max(1, min(10, score))
 
-# def coerce_schema(parsed: dict) -> dict:
-#     """
-#     Gemini가 잘못된 구조로 응답했을 경우
-#     우리가 기대하는 표준 스키마로 변환 시도
-#     """
-#     if "scores" in parsed:
-#         return parsed  # 이미 정상
-
-#     # 케이스: 항목별로 풀어서 준 경우
-#     if "criticalThinking" in parsed and "scientificKnowledge" in parsed:
-#         return {
-#             "scores": {
-#                 "criticalThinking": parsed["criticalThinking"].get("score"),
-#                 "scientificKnowledge": parsed["scientificKnowledge"].get("score"),
-#             },
-#             "rationales": {
-#                 "criticalThinking": parsed["criticalThinking"].get("rationales", []),
-#                 "scientificKnowledge": parsed["scientificKnowledge"].get("rationales", []),
-#             },
-#             "keySentences": {
-#                 "criticalThinking": parsed["criticalThinking"].get("keySentences", []),
-#                 "scientificKnowledge": parsed["scientificKnowledge"].get("keySentences", []),
-#             }
-#         }
-
-#     raise ValueError("Gemini 응답 스키마 인식 불가")
-
 
 def validate(parsed: dict):
     if not isinstance(parsed, dict):
@@ -116,13 +89,14 @@ def analyze_essay(essay: str) -> dict:
 점수 인플레이션을 경계하고, 깐깐하게 채점하십시오.
 
 [답변 스타일 가이드]
-평가 근거(rationales)를 작성할 때는 구어체나 존댓말(~습니다, ~해요 등)을 사용하지 마십시오.
-대신, '~함', ~'음', '~임' 등의 명사형 종결 어미(개조식)를 사용하여 간결하고 단호하게 작성하십시오.
-- 나쁜 예: "이 답변은 논리적 흐름이 부족합니다."
-- 좋은 예: "논리적 흐름이 부족함." / "인과관계 설정이 미흡함."
-    
-각 항목은 1점(최하)부터 10점(최상) 사이의 점수로 평가합니다.
-점수를 매길 때는 아래 '핵심 평가 요소'를 종합적으로 고려하십시오.
+평가 근거(rationales)는 구어체를 사용하지 마십시오.
+'~함', '~임', '~부족함', '~타당함' 등 명사형 종결 어미(개조식)로 간결하게 작성하십시오.
+
+
+각 항목은 1점(최하)부터 10점(최상) 사이의 정수로 평가하십시오.
+점수를 매길 때는 아래 핵심 평가 요소를 종합적으로 고려하십시오.
+
+[채점 기준표]
 
 평가 영역 1. 수과학적 지식(Scientific Knowledge)
 [핵심 평가요소]
@@ -136,7 +110,7 @@ def analyze_essay(essay: str) -> dict:
 
 평가 영역 2. 비판적 사고력(Critical Thinking)
 [핵심 평가요소]
-- 논리적 흐름:　주장이 서론 →본론(근거, 설명) → 결론과 같은 구조로 자연스럽게 연결되는가? 글
+- 논리적 흐름: 주장이 서론 →본론(근거, 설명) → 결론과 같은 구조로 자연스럽게 연결되는가? 글
 전체에 모순이 없는가?
 - 인과관계의 타당성: 원인과 결과를 적절히 연결하고 있는가? 단순 나열이 아니라 논증 구조를
 갖추었는가?
@@ -149,6 +123,9 @@ def analyze_essay(essay: str) -> dict:
 각 항목은 1~10점 사이의 정수로 평가합니다.
 각 점수에 대해 평가 근거 2개 이상과
 해당 근거를 뒷받침하는 원문 문장을 함께 제공합니다.
+
+각 항목은 반드시 독립적으로 평가하십시오.
+
 """
 
     canon = normalize(essay)
