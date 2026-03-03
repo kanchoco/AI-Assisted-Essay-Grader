@@ -223,7 +223,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
               <h3 className="mobile-title">전문가 채점</h3>
               <div className="grading-form-container">
                   <div className="score-row">
-                      <span className="score-label label-blue">수과학적 사고</span>
+                      <span className="score-label label-blue">수과학적 지식</span>
                       <input 
                           type="number" 
                           className="score-input"
