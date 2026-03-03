@@ -29,7 +29,7 @@ def normalize_score(n):
     else:
         raise ValueError(f"점수 타입 오류: {type(n)}")
 
-    return max(1, min(10, score))  
+    return max(0, min(10, score))  
 
 
 
@@ -37,50 +37,40 @@ def validate(parsed: dict):
     if not isinstance(parsed, dict):
         raise ValueError("응답 파싱 실패")
 
-    scores = parsed.get("scores", {})
-    rationales = parsed.get("rationales", {})
-    key_sentences = parsed.get("keySentences", {})
+    scores = parsed.get("scores")
+    rationales = parsed.get("rationales")
+    key_sentences = parsed.get("keySentences")
 
     if not isinstance(scores, dict):
-        scores = {}
+        raise ValueError("scores 누락 또는 형식 오류")
     if not isinstance(rationales, dict):
-        rationales = {}
+        raise ValueError("rationales 누락 또는 형식 오류")
     if not isinstance(key_sentences, dict):
-        key_sentences = {}
+        raise ValueError("keySentences 누락 또는 형식 오류")
 
-    # 점수 정규화 (1~10 고정)
-    ct = normalize_score(scores.get("criticalThinking", 1))
-    sk = normalize_score(scores.get("scientificKnowledge", 1))
+    # 점수 정규화
+    ct = normalize_score(scores.get("criticalThinking", 0))
+    sk = normalize_score(scores.get("scientificKnowledge", 0))
 
-    parsed["scores"] = {
-        "criticalThinking": ct,
-        "scientificKnowledge": sk,
-    }
+    parsed["scores"]["criticalThinking"] = ct
+    parsed["scores"]["scientificKnowledge"] = sk
 
     for k in ["criticalThinking", "scientificKnowledge"]:
-
-        r = rationales.get(k, [])
-        ks = key_sentences.get(k, [])
+        r = rationales.get(k)
+        ks = key_sentences.get(k)
 
         if not isinstance(r, list):
-            r = []
+            raise ValueError(f"{k}: rationales 리스트 아님")
         if not isinstance(ks, list):
-            ks = []
+            raise ValueError(f"{k}: keySentences 리스트 아님")
 
-        # 최소 2개 보장
-        while len(r) < 2:
-            r.append("근거 부족함")
+        if len(r) < 2:
+            raise ValueError(f"{k}: 근거 2개 미만")
+        if len(ks) < 2:
+            raise ValueError(f"{k}: 문장 2개 미만")
 
-        while len(ks) < 2:
-            ks.append("관련 문장 부족")
-
-        # 개수 불일치 보정
-        min_len = min(len(r), len(ks))
-        r = r[:min_len]
-        ks = ks[:min_len]
-
-        parsed["rationales"][k] = r
-        parsed["keySentences"][k] = ks
+        if len(r) != len(ks):
+            raise ValueError(f"{k}: 근거/문장 개수 불일치")
 
 
 def analyze_essay(essay: str) -> dict:
