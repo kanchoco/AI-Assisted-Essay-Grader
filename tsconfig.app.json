@@ -26,6 +26,6 @@
     "*.ts",
     "*.tsx",
     "components/**/*"
-  ],
+, "frontend/app.tsx"  ],
   "exclude": ["node_modules", "dist"]
 }
