@@ -13,10 +13,10 @@ FROM python:3.10
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py ai_grader.py ./
+COPY backend/app.py backend/ai_grader.py ./
 
 # frontend 빌드 결과 복사
 COPY --from=frontend /app/dist ./dist
