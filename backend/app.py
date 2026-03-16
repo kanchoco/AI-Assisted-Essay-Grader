@@ -47,6 +47,9 @@ def get_engine():
     )
 
 # API 영역
+@app.route("/")
+def serve():
+    return app.send_static_file("index.html")
 
 @app.post("/upload_excel")
 def upload_excel():
