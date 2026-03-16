@@ -156,8 +156,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
           score_uid: scoreUid,
           student_uid: student.student_uid,
           rater_uid: raterUid,
-          knw_score: aiResult.scores.scientific,
-          crt_score: aiResult.scores.critical,
+          knw_score: Number(expertScore.math),
+          crt_score: Number(expertScore.critical),
         }),
       });
 
