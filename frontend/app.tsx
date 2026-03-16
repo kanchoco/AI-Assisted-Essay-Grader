@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import LoginScreen from "./components/LoginScreen";
 import GradingScreen from "./components/GradingScreen";
-import './components/Grading.css'
+import './frontend/components/Grading.css'
 
 // Cloud Run API URL
 const API_BASE_URL =
