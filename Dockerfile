@@ -1,11 +1,11 @@
 FROM node:22 AS frontend
 
-WORKDIR /frontend
+WORKDIR /app
 
-COPY package.json package-lock.json ./
+COPY frontend/package*.json ./
 RUN npm install
 
-COPY . .
+COPY frontend .
 RUN npm run build
 
 
@@ -13,13 +13,13 @@ FROM python:3.10
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app.py ai_grader.py ./
-COPY --from=frontend /frontend/dist ./dist
+COPY backend ./backend
+
+COPY --from=frontend /app/dist ./dist
 
 ENV PORT=8080
 
 CMD ["gunicorn", "-b", ":8080", "app:app"]
-
