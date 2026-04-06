@@ -161,11 +161,21 @@ def ai_grade():
             return {"success": False, "message": "student not found"}, 404
 
         student_uid = student["student_uid"]
-        essay = student["student_answer"]
-
+        student_answer = student["student_answer"]
+        criterion_list =  ['critical_thinking', 'scientific_knowledge']
         # AI 채점
-        ai_result = run_ai_grading(essay)
+        ai_result = run_ai_grading(student_answer)
+        print("AI RESULT RAW:", ai_result)
         score_uid = str(uuid.uuid4())
+
+        scores = ai_result.get("scores", {})
+        rationales = ai_result.get("rationales", {})
+
+        knw_score = scores.get("scientificKnowledge", 1)
+        crt_score = scores.get("criticalThinking", 1)
+
+        knw_r = rationales.get("scientificKnowledge", ["근거 없음"])
+        crt_r = rationales.get("criticalThinking", ["근거 없음"])
 
         # AI 점수 저장
         conn.execute(
@@ -183,10 +193,10 @@ def ai_grade():
                 "uid": score_uid,
                 "student_uid": student_uid,
                 "rater_uid": rater_uid,
-                "knw": ai_result["scores"]["scientific"],
-                "crt": ai_result["scores"]["critical"],
-                "knw_text": "\n".join(ai_result["rationales"]["scientific"]),
-                "crt_text": "\n".join(ai_result["rationales"]["critical"]),
+                "knw": knw_score,
+                "crt": crt_score,
+                "knw_text": "\n".join(knw_r),
+                "crt_text": "\n".join(crt_r),
             }
         )
 
