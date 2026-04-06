@@ -211,8 +211,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                   <p className="answer-text">
                       <AnswerHighlighter
                           text={student.student_answer}
-                          sciSentences={aiResult?.key_sentences?.scientific || []}
-                          crtSentences={aiResult?.key_sentences?.critical || []}
+                          sciSentences={aiResult?.key_sentences?.scientificKnowledge || []}
+                          crtSentences={aiResult?.key_sentences?.criticalThingking || []}
                       />
                   </p>
               </div>

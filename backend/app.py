@@ -162,7 +162,7 @@ def ai_grade():
 
         student_uid = student["student_uid"]
         student_answer = student["student_answer"]
-        criterion_list =  ['critical_thinking', 'scientific_knowledge']
+        criterion_list =  ['criticalThinking', 'scientificKnowledge']
         # AI 채점
         ai_result = run_ai_grading(student_answer)
         print("AI RESULT RAW:", ai_result)
