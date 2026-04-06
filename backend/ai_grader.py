@@ -42,8 +42,6 @@ def normalize_score(n):
 
     return max(0, min(10, score))  
 
-REQUIRED_CRITERIA = ["scientificKnowledge", "criticalThinking"]
-
 def validate(parsed: dict):
     if not isinstance(parsed, dict):
         raise ValueError("응답 파싱 실패")
