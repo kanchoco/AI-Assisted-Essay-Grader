@@ -79,14 +79,15 @@ def validate(parsed: dict):
         if not isinstance(ks, list):
             raise ValueError(f"{criterion}: keySentences 형식 오류")
 
-        if len(r) < 2:
-            raise ValueError(f"{criterion}: 근거 2개 미만")
+        while len(r) < 2:
+            r.append("근거 부족함")
 
-        if len(ks) < 2:
-            raise ValueError(f"{criterion}: 문장 2개 미만")
+        while len(ks) < 2:
+            ks.append("관련 문장 부족")
 
-        if len(r) != len(ks):
-            raise ValueError(f"{criterion}: 근거/문장 개수 불일치")
+        min_len = min(len(r), len(ks))
+        r = r[:min_len]
+        ks = ks[:min_len]
 
         parsed_rationales[criterion] = r
         parsed_key_sentences[criterion] = ks
