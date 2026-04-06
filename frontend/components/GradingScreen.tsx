@@ -16,6 +16,7 @@ interface HighlighterProps {
   crtSentences?: string[];
 }
 
+
 const AnswerHighlighter: React.FC<HighlighterProps> = ({
   text,
   sciSentences = [],
@@ -83,6 +84,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
   
   const [aiResult, setAiResult] = useState<any>(null);
   const [scoreUid, setScoreUid] = useState('');
+  console.log("SCORES:", aiResult?.scores)
   
   const [isAiPanelOpen, setIsAiPanelOpen] = useState(false); // AI 패널 열림 여부
   const [isLoading, setIsLoading] = useState(false); // 로딩 스피너
