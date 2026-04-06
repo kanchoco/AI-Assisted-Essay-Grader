@@ -223,7 +223,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
               <h3 className="mobile-title">전문가 채점</h3>
               <div className="grading-form-container">
                   <div className="score-row">
-                      <span className="score-label label-blue">수과학적 사고</span>
+                      <span className="score-label label-blue">수과학적 지식</span>
                       <input 
                           type="number" 
                           className="score-input"
@@ -315,12 +315,12 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                           {/* 점수 영역 */}
                           <div style={{ flex: '0 0 auto', paddingBottom: '10px', borderBottom: '1px solid #eee' }}>
                             <div className="score-row">
-                                <span className="score-label label-blue">수과학적 사고</span>
-                                <div className="score-display">{aiResult?.scores?.scientific}</div>
+                                <span className="score-label label-blue">수과학적 지식</span>
+                                <div className="score-display">{aiResult?.scores?.scientificKnowledge}</div>
                             </div>
                             <div className="score-row">
                                 <span className="score-label label-yellow">비판적 사고</span>
-                                <div className="score-display">{aiResult?.scores?.critical}</div>
+                                <div className="score-display">{aiResult?.scores?.criticalThingking}</div>
                             </div>
                           </div>
                           
@@ -337,8 +337,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                                       [수과학적 사고]
                                   </h4>
                                   <ul className="feedback-list">
-                                      {aiResult?.rationales?.scientific?.length > 0 ? (
-                                          aiResult.rationales.scientific.map((r: string, i: number) => (
+                                      {aiResult?.rationales?.scientificKnowledge?.length > 0 ? (
+                                          aiResult.rationales.scientificKnowledge.map((r: string, i: number) => (
                                               <li key={`sci-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
                                           ))
                                       ) : ( <li>근거 없음</li> )}
@@ -351,8 +351,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                                       [비판적 사고]
                                   </h4>
                                   <ul className="feedback-list">
-                                      {aiResult?.rationales?.critical?.length > 0 ? (
-                                          aiResult.rationales.critical.map((r: string, i: number) => (
+                                      {aiResult?.rationales?.criticalThingking?.length > 0 ? (
+                                          aiResult.rationales.criticalThingking.map((r: string, i: number) => (
                                               <li key={`crt-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
                                           ))
                                       ) : ( <li>근거 없음</li> )}
