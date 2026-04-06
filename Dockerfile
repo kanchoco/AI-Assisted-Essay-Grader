@@ -3,7 +3,7 @@ FROM node:22 AS frontend
 WORKDIR /app
 
 COPY frontend/package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY frontend .
 RUN npm run build
@@ -22,4 +22,12 @@ COPY --from=frontend /app/dist ./dist
 
 ENV PORT=8080
 
-CMD ["gunicorn", "-b", ":8080", "backend.app:app"]
+CMD ["gunicorn", \
+     "-k", "gthread", \
+     "--workers", "1", \
+     "--threads", "2", \
+     "--timeout", "60", \
+     "--max-requests", "100", \
+     "--max-requests-jitter", "10", \
+     "-b", ":8080", \
+     "backend.app:app"]
