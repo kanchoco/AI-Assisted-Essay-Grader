@@ -94,7 +94,6 @@ def validate(parsed: dict):
     parsed["rationales"] = parsed_rationales
     parsed["keySentences"] = parsed_key_sentences
 
-    return parsed
 
 def fallback_response(reason: str = "모델 응답 오류"):
 
