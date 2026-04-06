@@ -136,6 +136,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
 
       setAiResult(data.ai_result);
       setScoreUid(data.score_uid);
+      console.log("FULL aiResult:", aiResult)
 
     } catch (err) {
       alert('AI 서버 오류');
