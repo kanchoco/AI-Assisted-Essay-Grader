@@ -103,7 +103,7 @@ def fallback_response(reason: str = "모델 응답 오류"):
     rationales = {}
     key_sentences = {}
     criteria = REQUIRED_CRITERIA
-    
+
     for c in criteria:
 
         scores[c] = 1
@@ -246,7 +246,7 @@ def run_ai_grading(essay_text: str, criteria: list[str], max_retry: int = 3):
                 continue
 
     # 최종 실패 fallback
-    fallback = fallback_response(criteria, str(last_error))
+    fallback = fallback_response(str(last_error))
 
     return {
         "success": False,
