@@ -219,7 +219,7 @@ def analyze_essay(essay: str) -> dict:
     return parsed
 
 
-def run_ai_grading(essay_text: str, criteria: list[str], max_retry: int = 3):
+def run_ai_grading(essay_text: str, max_retry: int = 3):
 
     last_error = None
 
