@@ -83,6 +83,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
   const [expertRationale, setExpertRationale] = useState('');
   
   const [aiResult, setAiResult] = useState<any>(null);
+  console.log("RENDER aiResult:", aiResult);
   const [scoreUid, setScoreUid] = useState('');
 
   
@@ -136,7 +137,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
 
       setAiResult(data.ai_result);
       setScoreUid(data.score_uid);
-      console.log("FULL aiResult:", aiResult)
+      
 
     } catch (err) {
       alert('AI 서버 오류');
@@ -214,8 +215,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                   <p className="answer-text">
                       <AnswerHighlighter
                           text={student.student_answer}
-                          sciSentences={aiResult?.ai_result?.key_sentences?.scientificKnowledge || []}
-                          crtSentences={aiResult?.ai_result?.key_sentences?.criticalThingking || []}
+                          sciSentences={aiResult?.key_sentences?.scientificKnowledge || []}
+                          crtSentences={aiResult?.key_sentences?.criticalThingking || []}
                       />
                   </p>
               </div>
@@ -319,11 +320,11 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                           <div style={{ flex: '0 0 auto', paddingBottom: '10px', borderBottom: '1px solid #eee' }}>
                             <div className="score-row">
                                 <span className="score-label label-blue">수과학적 지식</span>
-                                <div className="score-display">{aiResult?.ai_result?.scores?.scientificKnowledge}</div>
+                                <div className="score-display">{aiResult?.scores?.scientificKnowledge}</div>
                             </div>
                             <div className="score-row">
                                 <span className="score-label label-yellow">비판적 사고</span>
-                                <div className="score-display">{aiResult?.ai_result?.scores?.criticalThingking}</div>
+                                <div className="score-display">{aiResult?.scores?.criticalThingking}</div>
                             </div>
                           </div>
                           
@@ -340,8 +341,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                                       [수과학적 사고]
                                   </h4>
                                   <ul className="feedback-list">
-                                      {aiResult?.ai_result?.rationales?.scientificKnowledge?.length > 0 ? (
-                                          aiResult.ai_result.rationales.scientificKnowledge.map((r: string, i: number) => (
+                                      {aiResult?.rationales?.scientificKnowledge?.length > 0 ? (
+                                          aiResult.rationales.scientificKnowledge.map((r: string, i: number) => (
                                               <li key={`sci-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
                                           ))
                                       ) : ( <li>근거 없음</li> )}
@@ -354,8 +355,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                                       [비판적 사고]
                                   </h4>
                                   <ul className="feedback-list">
-                                      {aiResult?.ai_result?.rationales?.criticalThingking?.length > 0 ? (
-                                          aiResult.ai_result.rationales.criticalThingking.map((r: string, i: number) => (
+                                      {aiResult?.rationales?.criticalThingking?.length > 0 ? (
+                                          aiResult.rationales.criticalThingking.map((r: string, i: number) => (
                                               <li key={`crt-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
                                           ))
                                       ) : ( <li>근거 없음</li> )}
