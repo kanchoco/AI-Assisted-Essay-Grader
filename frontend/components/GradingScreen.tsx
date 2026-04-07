@@ -83,7 +83,6 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
   const [expertRationale, setExpertRationale] = useState('');
   
   const [aiResult, setAiResult] = useState<any>(null);
-  console.log("RENDER aiResult:", aiResult);
   const [scoreUid, setScoreUid] = useState('');
 
   
@@ -216,7 +215,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                       <AnswerHighlighter
                           text={student.student_answer}
                           sciSentences={aiResult?.key_sentences?.scientificKnowledge || []}
-                          crtSentences={aiResult?.key_sentences?.criticalThingking || []}
+                          crtSentences={aiResult?.key_sentences?.criticalThinking || []}
                       />
                   </p>
               </div>
@@ -324,7 +323,7 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                             </div>
                             <div className="score-row">
                                 <span className="score-label label-yellow">비판적 사고</span>
-                                <div className="score-display">{aiResult?.scores?.criticalThingking}</div>
+                                <div className="score-display">{aiResult?.scores?.criticalThinking}</div>
                             </div>
                           </div>
                           
@@ -355,8 +354,8 @@ const GradingRow: React.FC<GradingRowProps> = ({ student, apiUrl, raterUid, isLa
                                       [비판적 사고]
                                   </h4>
                                   <ul className="feedback-list">
-                                      {aiResult?.rationales?.criticalThingking?.length > 0 ? (
-                                          aiResult.rationales.criticalThingking.map((r: string, i: number) => (
+                                      {aiResult?.rationales?.criticalThinking?.length > 0 ? (
+                                          aiResult.rationales.criticalThinking.map((r: string, i: number) => (
                                               <li key={`crt-${i}`} style={{ marginBottom: '4px' }}>{r}</li>
                                           ))
                                       ) : ( <li>근거 없음</li> )}
