@@ -126,7 +126,7 @@ def fallback_response(reason: str = "모델 응답 오류"):
 def analyze_essay(essay: str) -> dict:
     rubric_prompt = f"""
 [역할]
-당신은 초등학교 교사입니다.
+당신은 중학교 과학교사입니다.
 논술형 과제에 대한 학생의 답안을 정확하게 평가하십시오.
 
 [답변 스타일 가이드]
