@@ -14,8 +14,8 @@ REQUIRED_CRITERIA = ["scientificKnowledge", "criticalThinking"]
 model = genai.GenerativeModel(
     MODEL_VERSION,
     generation_config={
-        "temperature": 0.4,
-        "top_k": 40,
+        "temperature": 0,
+        "top_k": 50,
         "top_p": 0.9,
         "candidate_count": 1,
     }
